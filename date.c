@@ -120,7 +120,7 @@ double date_compute(const char *date)
     return time(0) + offset;
 }
 
-Buffer* date_format(double date, Buffer* format)
+int date_format(double date, char* format)
 {
     static const char* Mon[] = {
         "Jan",
@@ -146,25 +146,20 @@ Buffer* date_format(double date, Buffer* format)
         "Sat",
     };
 
-    time_t t = (time_t) date;
-    struct tm gmt;
-    gmtime_r(&t, &gmt);
-
-    char buf[DATE_FORMAT_LEN + 10];
-    sprintf(buf,
-            "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
-            Day[gmt.tm_wday % 7],
-            gmt.tm_mday,
-            Mon[gmt.tm_mon % 12],
-            gmt.tm_year + 1900,
-            gmt.tm_hour,
-            gmt.tm_min,
-            gmt.tm_sec,
-            "GMT");
-    int len = strlen(buf);
-
-    buffer_ensure_delta(format, len);
-    buffer_append(format, buf, len);
-    buffer_terminate(format);
-    return format;
+    if (format) {
+        time_t t = (time_t) date;
+        struct tm gmt;
+        gmtime_r(&t, &gmt);
+        sprintf(format,
+                "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
+                Day[gmt.tm_wday % 7],
+                gmt.tm_mday,
+                Mon[gmt.tm_mon % 12],
+                gmt.tm_year + 1900,
+                gmt.tm_hour,
+                gmt.tm_min,
+                gmt.tm_sec,
+                "GMT");
+    }
+    return DATE_FORMAT_LEN;
 }

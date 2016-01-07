@@ -102,11 +102,9 @@ Buffer* cookie_put_date(Buffer* cookie,
                         const char* value)
 {
     double date = date_compute(value);
-    Buffer format;
-    buffer_init(&format, 0);
-    date_format(date, &format);
-    cookie_put_value(cookie, name, nlen, format.data, format.pos, 0, 0);
-    buffer_fini(&format);
+    char format[100];
+    int flen = date_format(date, format);
+    cookie_put_value(cookie, name, nlen, format, flen, 0, 0);
     return cookie;
 }
 

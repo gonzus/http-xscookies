@@ -5,6 +5,6 @@
 
 double date_compute(const char *date);
 
-Buffer* date_format(double date, Buffer* format);
+int date_format(double date, char* format);
 
 #endif
