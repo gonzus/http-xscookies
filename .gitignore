@@ -11,7 +11,6 @@ pm_to_blib
 MANIFEST.bak
 
 Makefile
-inc/
 #ppport.h
 *.sw[po]
 *.bak
@@ -27,8 +26,6 @@ MYMETA.*
 META.yml
 README
 ^inc/
-devel-quickcover*/
-/devel-quickcover*
 /.build
 /_build_params
 /Build
@@ -40,5 +37,5 @@ devel-quickcover*/
 *.bs
 *.swp
 *.tar.gz
-quickcover.c
 cover_db
+baker.c
