@@ -102,9 +102,13 @@ Buffer* cookie_put_date(Buffer* cookie,
                         const char* value)
 {
     double date = date_compute(value);
-    char format[100];
-    int flen = date_format(date, format);
-    cookie_put_value(cookie, name, nlen, format, flen, 0, 0);
+
+    Buffer format;
+    buffer_init(&format, 0);
+    date_format(date, &format);
+    cookie_put_value(cookie, name, nlen, format.data, format.pos, 0, 0);
+    buffer_fini(&format);
+
     return cookie;
 }
 
@@ -112,7 +116,7 @@ Buffer* cookie_put_integer(Buffer* cookie,
                            const char* name, int nlen,
                            long value)
 {
-    char buf[50];
+    char buf[50]; /* FIXED BUFFER OK: to format a long */
     int blen = 0;
     sprintf(buf, "%ld", value);
     blen = strlen(buf);
@@ -127,7 +131,7 @@ Buffer* cookie_put_boolean(Buffer* cookie,
         return cookie;
     }
 
-    char buf[50];
+    char buf[50]; /* FIXED BUFFER OK: to format a boolean */
     int blen = 0;
     strcpy(buf, "1");
     blen = strlen(buf);

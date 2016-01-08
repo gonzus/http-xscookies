@@ -4,7 +4,7 @@
 #include <time.h>
 #include "date.h"
 
-/* length of a string like [Sun, 08-Jan-2006 13:56:17 GMT] */
+/* length of a string like "Sun, 08-Jan-2006 13:56:17 GMT"]" */
 #define DATE_FORMAT_LEN 29
 
 double date_compute(const char *date)
@@ -120,7 +120,7 @@ double date_compute(const char *date)
     return time(0) + offset;
 }
 
-int date_format(double date, char* format)
+Buffer* date_format(double date, Buffer* format)
 {
     static const char* Mon[] = {
         "Jan",
@@ -146,20 +146,21 @@ int date_format(double date, char* format)
         "Sat",
     };
 
-    if (format) {
-        time_t t = (time_t) date;
-        struct tm gmt;
-        gmtime_r(&t, &gmt);
-        sprintf(format,
-                "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
-                Day[gmt.tm_wday % 7],
-                gmt.tm_mday,
-                Mon[gmt.tm_mon % 12],
-                gmt.tm_year + 1900,
-                gmt.tm_hour,
-                gmt.tm_min,
-                gmt.tm_sec,
-                "GMT");
-    }
-    return DATE_FORMAT_LEN;
+    time_t t = (time_t) date;
+    struct tm gmt;
+    gmtime_r(&t, &gmt);
+
+    buffer_ensure_delta(format, DATE_FORMAT_LEN);
+    sprintf(format->data,
+            "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
+            Day[gmt.tm_wday % 7],
+            gmt.tm_mday,
+            Mon[gmt.tm_mon % 12],
+            gmt.tm_year + 1900,
+            gmt.tm_hour,
+            gmt.tm_min,
+            gmt.tm_sec,
+            "GMT");
+    format->pos = DATE_FORMAT_LEN;
+    return format;
 }
