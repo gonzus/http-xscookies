@@ -103,17 +103,16 @@ Buffer* cookie_get_pair(Buffer* cookie,
     int vlen = 0;
 
     while (1) {
-        char c = cookie->data[cookie->pos];
-        if (c == '\0' || c == ';') {
+        if (cookie->data[cookie->pos] == '\0' || cookie->data[cookie->pos] == ';') {
             if (state == 1) {
                 nlen = cookie->pos - npos;
             } else if (state == 3) {
                 vlen = cookie->pos - vpos;
             }
             state = 9;
-        } else if (isspace(c)) {
+        } else if (isspace(cookie->data[cookie->pos])) {
             /* just skip whitespace */
-        } else if (c == '=') {
+        } else if (cookie->data[cookie->pos] == '=') {
             if (state != 1) {
                 state = 9;
             } else {
@@ -124,19 +123,17 @@ Buffer* cookie_get_pair(Buffer* cookie,
             if (state == 0) {
                 npos = cookie->pos;
                 state = 1;
-            } else if (state == 1) {
-                /* ok, keep reading name */
             } else if (state == 2) {
                 vpos = cookie->pos;
                 state = 3;
-            } else if (state == 3) {
-                /* ok, keep reading value */
             }
+            /* in any other case, keep reading */
         }
-        if (c != '\0') {
-            ++cookie->pos;
-        }
+        ++cookie->pos;
         if (state == 9) {
+            if (cookie->data[cookie->pos - 1] == '\0') {
+                --cookie->pos;
+            }
             break;
         }
     }
