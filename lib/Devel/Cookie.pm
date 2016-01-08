@@ -4,10 +4,12 @@ use strict;
 use warnings;
 
 use XSLoader;
+use parent 'Exporter';
 
 our $VERSION = '0.000001';
-
 XSLoader::load( 'Devel::Cookie', $VERSION );
+
+our @EXPORT_OK = qw[bake_cookie crush_cookie];
 
 1;
 
