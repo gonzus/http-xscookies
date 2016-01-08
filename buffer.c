@@ -20,6 +20,10 @@ Buffer* buffer_init(Buffer* buffer, unsigned int size)
     unsigned int target = size > 0 ? size+1 : BUFFER_SIZE_INIT;
 
     if (size > sizeof(buffer->fixed)) {
+        target = BUFFER_SIZE_INIT;
+        while (target < size) {
+            target *= BUFFER_SIZE_FACTOR;
+        }
         buffer->size = target;
         GMEM_NEW(buffer->data, char*, target);
     } else {
