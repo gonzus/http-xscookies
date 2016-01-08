@@ -202,5 +202,6 @@ HV*
 crush_cookie(SV* str)
   CODE:
     RETVAL = parse_cookie(aTHX_ str);
+    sv_2mortal((SV*) RETVAL); /* ugly hack to fix memory leak in typemap */
 
   OUTPUT: RETVAL
