@@ -1,8 +1,8 @@
 #ifndef BUFFER_H_
 #define BUFFER_H_
 
-#define BUFFER_SIZEOF_DESIRED 48
 
+#define BUFFER_SIZEOF_DESIRED 64
 typedef struct Buffer {
     unsigned int pos;
     unsigned int size;
