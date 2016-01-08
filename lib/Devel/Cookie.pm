@@ -21,7 +21,7 @@ __END__
 
 =head1 NAME
 
-Devel::Cookie - Quick &amp; dirty cookie mangling for Perl
+Devel::Cookie - Quick and dirty cookie mangling for Perl
 
 =head1 VERSION
 
