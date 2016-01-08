@@ -26,8 +26,8 @@ WriteMakefile(
         resources   => {
             repository => {
                 type => 'git',
-                url  => 'git@github.com:p5pclub/devel-cookie',
-                web  => 'https://github.com/p5pclub/devel-cookie',
+                url  => 'git@github.com:gonzus/devel-cookie',
+                web  => 'https://github.com/gonzus/devel-cookie',
             },
         },
     },
