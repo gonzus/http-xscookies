@@ -7,6 +7,9 @@
 #include "buffer.h"
 #include "cookie.h"
 
+/*
+ * Possible field names in a cookie.
+ */
 #define COOKIE_NAME_VALUE      "value"
 #define COOKIE_NAME_DOMAIN     "domain"
 #define COOKIE_NAME_PATH       "path"
@@ -128,8 +131,6 @@ static HV* parse_cookie(pTHX_ SV* pstr)
         Buffer cookie;
         Buffer name;
         Buffer value;
-
-
 
         /* string not valid? bail out */
         if (!SvOK(pstr) || !SvPOK(pstr)) {
