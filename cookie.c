@@ -18,15 +18,6 @@ static Buffer* cookie_put_value(Buffer* cookie,
 
     /* output each part into the cookie */
     do {
-        Buffer encoded;
-        if (encode) {
-            unsigned int size = dnam.size;
-            if (size < dval.size) {
-                size = dval.size;
-            }
-            buffer_init(&encoded, 3 * size);
-        }
-
         if (cookie->pos > 0) {
             buffer_append(cookie, ";", 1);
         }
@@ -34,9 +25,7 @@ static Buffer* cookie_put_value(Buffer* cookie,
         if (!encode) {
             buffer_append(cookie, dnam.data, dnam.size);
         } else {
-            buffer_rewind(&encoded);
-            url_encode(&dnam, dnam.size, &encoded);
-            buffer_append(cookie, encoded.data, encoded.pos);
+            url_encode(&dnam, dnam.size, cookie);
         }
 
         if (!boolean) {
@@ -45,14 +34,8 @@ static Buffer* cookie_put_value(Buffer* cookie,
             if (!encode) {
                 buffer_append(cookie, dval.data, dval.size);
             } else {
-                buffer_rewind(&encoded);
-                url_encode(&dval, dval.size, &encoded);
-                buffer_append(cookie, encoded.data, encoded.pos);
+                url_encode(&dval, dval.size, cookie);
             }
-        }
-
-        if (encode) {
-            buffer_fini(&encoded);
         }
     } while (0);
 
@@ -163,40 +146,25 @@ Buffer* cookie_get_pair(Buffer* cookie,
             break;
         }
 
-        Buffer encoded;
-        Buffer decoded;
-        if (decode) {
-            unsigned int size = nlen;
-            if (size < vlen) {
-                size = vlen;
-            }
-            buffer_init(&decoded, size);
-        }
-
         if (!decode) {
             buffer_append(name, cookie->data + npos, nlen);
         } else {
+            Buffer encoded;
             buffer_wrap(&encoded, cookie->data + npos, nlen);
-            buffer_rewind(&decoded);
-            url_decode(&encoded, nlen, &decoded);
-            buffer_append(name, decoded.data, decoded.pos);
+            url_decode(&encoded, nlen, name);
         }
 
         if (!vlen) {
             buffer_append(value, "1", 1);
-        } else {
-            if (!decode) {
-                buffer_append(value, cookie->data + vpos, vlen);
-            } else {
-                buffer_wrap(&encoded, cookie->data + vpos, vlen);
-                buffer_rewind(&decoded);
-                url_decode(&encoded, vlen, &decoded);
-                buffer_append(value, decoded.data, decoded.pos);
-            }
+            break;
         }
 
-        if (decode) {
-            buffer_fini(&decoded);
+        if (!decode) {
+            buffer_append(value, cookie->data + vpos, vlen);
+        } else {
+            Buffer encoded;
+            buffer_wrap(&encoded, cookie->data + vpos, vlen);
+            url_decode(&encoded, vlen, value);
         }
     } while (0);
 
