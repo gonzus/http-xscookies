@@ -23,7 +23,8 @@ double date_compute(const char *date)
     int p = 0;
     double decimals = 1;
     char term = 's';
-    for (int e = 0; date[e] != '\0'; ++e) {
+    int e = 0;
+    for (; date[e] != '\0'; ++e) {
         char c = date[e];
         if (isspace(c)) {
             if (state > 0) {
