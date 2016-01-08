@@ -1,6 +1,12 @@
 #ifndef COOKIE_H_
 #define COOKIE_H_
 
+/*
+ * Manage a cookie buffer, where the caller can put different
+ * values (strings, dates, integers, booleans) and also
+ * parse the string back into its separate values.
+ */
+
 #include "buffer.h"
 
 Buffer* cookie_put_string(Buffer* cookie,
