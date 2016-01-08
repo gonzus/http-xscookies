@@ -20,11 +20,11 @@ Buffer* buffer_init(Buffer* buffer, unsigned int size)
     unsigned int target = size > 0 ? size+1 : BUFFER_SIZE_INIT;
 
     if (size > sizeof(buffer->fixed)) {
-        GMEM_NEW(buffer->data, char*, target);
         buffer->size = target;
+        GMEM_NEW(buffer->data, char*, target);
     } else {
-        buffer->data = buffer->fixed;
         buffer->size = sizeof(buffer->fixed);
+        buffer->data = buffer->fixed;
     }
 
     return buffer_reset(buffer);
@@ -67,8 +67,9 @@ Buffer* buffer_wrap(Buffer* buffer, const char* data, unsigned int length)
 {
     buffer_zero(buffer);
 
-    if (length == 0 && data[0] != '\0') {
-        length = strlen(data) + 1;
+    if (length == 0 && (data[0] != '\0')) {
+        /* NOTE: a wrapped buffer's size does not include the null terminator */
+        length = strlen(data);
     }
     buffer->size = length;
     buffer->data = (char*) data;
