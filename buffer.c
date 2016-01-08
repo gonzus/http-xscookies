@@ -1,3 +1,7 @@
+#if BUFFER_DEBUG
+#include <stdio.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include "gmem.h"
@@ -25,6 +29,9 @@ Buffer* buffer_init(Buffer* buffer, unsigned int size)
             target *= BUFFER_SIZE_FACTOR;
         }
         buffer->size = target;
+#if BUFFER_DEBUG
+        fprintf(stderr, "@@ malloc %u\n", target);
+#endif
         GMEM_NEW(buffer->data, char*, target);
     } else {
         buffer->size = sizeof(buffer->fixed);
@@ -38,6 +45,9 @@ Buffer* buffer_fini(Buffer* buffer)
 {
     if (buffer->data &&
         buffer->data != buffer->fixed) {
+#if BUFFER_DEBUG
+        fprintf(stderr, "@@ free %u\n", buffer->size);
+#endif
         GMEM_DEL(buffer->data, char*, buffer->size);
     }
 
@@ -94,9 +104,15 @@ Buffer* buffer_ensure_total(Buffer* buffer, unsigned int size)
     }
 
     if (buffer->data == buffer->fixed) {
+#if BUFFER_DEBUG
+        fprintf(stderr, "@@ malloc %u (SWITCH)\n", target);
+#endif
         GMEM_NEW(buffer->data, char*, target);
         memcpy(buffer->data, buffer->fixed, buffer->size);
     } else {
+#if BUFFER_DEBUG
+        fprintf(stderr, "@@ realloc %u %u\n", buffer->size, target);
+#endif
         GMEM_REALLOC(buffer->data, char*, buffer->size, target);
     }
     buffer->size = target;
