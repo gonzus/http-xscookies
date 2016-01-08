@@ -120,7 +120,7 @@ Buffer* buffer_ensure_total(Buffer* buffer, unsigned int size)
     return buffer;
 }
 
-Buffer* buffer_ensure_delta(Buffer* buffer, unsigned int size)
+Buffer* buffer_ensure_unused(Buffer* buffer, unsigned int size)
 {
     unsigned int needed = size + 1;
     unsigned int left = buffer->size - buffer->pos;
@@ -133,7 +133,7 @@ Buffer* buffer_ensure_delta(Buffer* buffer, unsigned int size)
 
 Buffer* buffer_append(Buffer* buffer, const char* source, unsigned int length)
 {
-    buffer_ensure_delta(buffer, length);
+    buffer_ensure_unused(buffer, length);
     memcpy(buffer->data + buffer->pos, source, length);
     buffer->pos += length;
     return buffer;

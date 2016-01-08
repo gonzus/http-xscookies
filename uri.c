@@ -16,7 +16,7 @@ Buffer* url_decode(Buffer* src, int length,
     }
 
     /* check and maybe increase space in target */
-    buffer_ensure_delta(tgt, length);
+    buffer_ensure_unused(tgt, length);
 
     int s = src->pos;
     int t = tgt->pos;
@@ -57,7 +57,7 @@ Buffer* url_encode(Buffer* src, int length,
     }
 
     /* check and maybe increase space in target */
-    buffer_ensure_delta(tgt, 3 * length);
+    buffer_ensure_unused(tgt, 3 * length);
 
     int s = src->pos;
     int t = tgt->pos;

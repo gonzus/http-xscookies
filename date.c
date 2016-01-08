@@ -150,7 +150,7 @@ Buffer* date_format(double date, Buffer* format)
     struct tm gmt;
     gmtime_r(&t, &gmt);
 
-    buffer_ensure_delta(format, DATE_FORMAT_LEN);
+    buffer_ensure_unused(format, DATE_FORMAT_LEN);
     sprintf(format->data,
             "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
             Day[gmt.tm_wday % 7],
