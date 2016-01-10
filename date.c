@@ -118,7 +118,9 @@ double date_compute(const char *date)
         default:
             break;
     }
-    return time(0) + offset;
+    time_t base = time(0);
+    /* printf("time now %lu\n", (unsigned long) base); */
+    return base + offset;
 }
 
 Buffer* date_format(double date, Buffer* format)
