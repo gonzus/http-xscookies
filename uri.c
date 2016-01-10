@@ -2,11 +2,10 @@
 #include <string.h>
 #include "uri.h"
 
-/* This file is generated automatically with program "encode" */
+/*
+ * This file is generated automatically with program "encode".
+ */
 #include "tables.h"
-
-#define NIBBLE_BITS 4
-#define MAKE_BYTE(nh, nl) (((nh) << NIBBLE_BITS) | (nl))
 
 Buffer* url_decode(Buffer* src, int length,
                    Buffer* tgt)

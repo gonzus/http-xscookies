@@ -6,7 +6,10 @@
 #include "date.h"
 #include "cookie.h"
 
-/* we will do our own URL decoding... */
+/*
+ * This file is generated automatically with program "encode".
+ * We include it because we will do our own URL decoding.
+ */
 #include "tables.h"
 
 static Buffer* cookie_put_value(Buffer* cookie,
