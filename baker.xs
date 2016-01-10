@@ -201,10 +201,9 @@ bake_cookie(SV* name, SV* value)
   CLEANUP:
     buffer_fini(&cookie);
 
-HV*
+SV*
 crush_cookie(SV* str)
   CODE:
-    RETVAL = parse_cookie(aTHX_ str);
-    sv_2mortal((SV*) RETVAL); /* ugly hack to fix memory leak in typemap */
+    RETVAL = newRV_noinc((SV *) parse_cookie(aTHX_ str));
 
   OUTPUT: RETVAL
