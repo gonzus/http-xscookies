@@ -91,6 +91,11 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
             continue;
         }
 
+        if (strcmp(key, COOKIE_NAME_VALUE) == 0) {
+            /* already processed */
+            continue;
+        }
+
         cvalue = 0;
         vlen = 0;
         val = hv_iterval(values, entry);
@@ -100,12 +105,9 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
 
         /* TODO: should we skip if cvalue is invalid / empty? */
 
-        if (strcmp(key, COOKIE_NAME_VALUE) == 0) {
-            /* already processed */
-            continue;
-        } else if (strcmp(key, COOKIE_NAME_DOMAIN   ) == 0 ||
-                   strcmp(key, COOKIE_NAME_PATH     ) == 0 ||
-                   strcmp(key, COOKIE_NAME_MAX_AGE  ) == 0) {
+        if (strcmp(key, COOKIE_NAME_DOMAIN   ) == 0 ||
+            strcmp(key, COOKIE_NAME_PATH     ) == 0 ||
+            strcmp(key, COOKIE_NAME_MAX_AGE  ) == 0) {
             cookie_put_string (cookie, key  , klen, cvalue, vlen, 0);
         } else if (strcmp(key, COOKIE_NAME_EXPIRES  ) == 0) {
             cookie_put_date   (cookie, key  , klen, cvalue);
