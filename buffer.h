@@ -13,10 +13,22 @@
  *   array if needed).
  */
 
+#include "gmem.h"
+
 /*
  * How big we want our struct to be, total size, in bytes.
  */
 #define BUFFER_SIZEOF_DESIRED 64
+
+/*
+ * How big we want the buffer to be, at least.
+ */
+#define BUFFER_SIZE_INIT   64
+
+/*
+ * By how much we multiply a size.
+ */
+#define BUFFER_SIZE_FACTOR 2
 
 /*
  * Definition for a Buffer. Fields are:
@@ -37,47 +49,136 @@ typedef struct Buffer {
 } Buffer;
 
 /*
+ * The whole API is implemented as macros, for performance purposes.
+ */
+
+/*
  * Initialize / finalize a buffer that could either use the
  * internal stack array or dynamically allocate memory.
  */
-Buffer* buffer_init(Buffer* buffer, unsigned int size);
-Buffer* buffer_fini(Buffer* buffer);
+#define buffer_init(buffer, length) \
+    do { \
+        buffer_zero(buffer); \
+        unsigned int target = (length) > 0 ? ((length)+1) : BUFFER_SIZE_INIT; \
+        if ((length) > sizeof((buffer)->fixed)) { \
+            target = BUFFER_SIZE_INIT; \
+            while (target < (length)) { \
+                target *= BUFFER_SIZE_FACTOR; \
+            } \
+            (buffer)->size = target; \
+            GMEM_NEW((buffer)->data, char*, target); \
+        } else { \
+            (buffer)->size = sizeof((buffer)->fixed); \
+            (buffer)->data = (buffer)->fixed; \
+        } \
+        buffer_reset(buffer); \
+    } while (0)
+
+#define buffer_fini(buffer) \
+    do { \
+        if ((buffer)->data && \
+            (buffer)->data != (buffer)->fixed) { \
+            GMEM_DEL((buffer)->data, char*, (buffer)->size); \
+        } \
+        buffer_zero(buffer); \
+    } while (0)
 
 /*
  * Wrap an existing char* to be used as a buffer.
+ * NOTE: a wrapped buffer's size does not include the null terminator.
  */
-Buffer* buffer_wrap(Buffer* buffer, const char* data, unsigned int length);
+#define buffer_wrap(buffer, src, length) \
+    do { \
+        unsigned int l = (length); \
+        buffer_zero(buffer); \
+        if (l == 0 && (src[0] != '\0')) { \
+            l = strlen(src); \
+        } \
+        (buffer)->size = l; \
+        (buffer)->data = (char*) src; \
+    } while (0)
 
 /*
- * Make sure the total size of the buffer is at least size.
+ * Zero out buffer.
  */
-Buffer* buffer_ensure_total(Buffer* buffer, unsigned int size);
-
-/*
- * Make sure the unused space in the buffer is at least size.
- */
-Buffer* buffer_ensure_unused(Buffer* buffer, unsigned int size);
+#define buffer_zero(buffer) \
+    do { \
+        (buffer)->size = 0; \
+        (buffer)->pos = 0; \
+        (buffer)->data = 0; \
+    } while (0)
 
 /*
  * Set buffer position to 0.
  */
-Buffer* buffer_rewind(Buffer* buffer);
+#define buffer_rewind(buffer) \
+    do { \
+        (buffer)->pos = 0; \
+    } while (0)
 
 /*
  * Put a '\0' in the current position of buffer.
  */
-Buffer* buffer_terminate(Buffer* buffer);
+#define buffer_terminate(buffer) \
+    do { \
+        if ((buffer)->pos < (buffer)->size) { \
+            (buffer)->data[(buffer)->pos] = '\0'; \
+        } \
+    } while (0)
 
 /*
  * Rewind and terminate buffer.
  */
-Buffer* buffer_reset(Buffer* buffer);
+#define buffer_reset(buffer) \
+    do { \
+        buffer_rewind(buffer); \
+        buffer_terminate(buffer); \
+    } while (0)
 
 /*
  * Append a given char* (with indicated, optional length) to the buffer.
  * If length is 0, compute it using strlen(source);
  * If necessary, grow the buffer before appending.
  */
-Buffer* buffer_append(Buffer* buffer, const char* source, unsigned int length);
+#define buffer_append(buffer, source, length) \
+    do { \
+        unsigned int l = (length) ? (length) : strlen(source); \
+        buffer_ensure_unused(buffer, l); \
+        memcpy((buffer)->data + (buffer)->pos, source, l); \
+        (buffer)->pos += l; \
+    } while (0)
+
+/*
+ * Make sure the unused space in the buffer is at least size.
+ */
+#define buffer_ensure_unused(buffer, length) \
+    do { \
+        unsigned int needed = (length) + 1; \
+        unsigned int left = (buffer)->size - (buffer)->pos; \
+        if (left < needed) { \
+            buffer_ensure_total((buffer), (buffer)->pos + (length)); \
+        } \
+    } while (0)
+
+/*
+ * Make sure the total size of the buffer is at least size.
+ */
+#define buffer_ensure_total(buffer, length) \
+    do { \
+        unsigned int needed = (length) + 1; \
+        if ((buffer)->size < needed) { \
+            unsigned int target = BUFFER_SIZE_INIT; \
+            while (target < needed) { \
+                target *= BUFFER_SIZE_FACTOR; \
+            } \
+            if ((buffer)->data == (buffer)->fixed) { \
+                GMEM_NEW((buffer)->data, char*, target); \
+                memcpy((buffer)->data, (buffer)->fixed, (buffer)->size); \
+            } else { \
+                GMEM_REALLOC((buffer)->data, char*, (buffer)->size, target); \
+            } \
+            (buffer)->size = target; \
+        } \
+    } while (0)
 
 #endif
