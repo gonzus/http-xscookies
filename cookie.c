@@ -22,7 +22,7 @@ static Buffer* cookie_put_value(Buffer* cookie,
     /* output each part into the cookie */
     do {
         if (cookie->pos > 0) {
-            buffer_append(cookie, ";", 1);
+            buffer_append(cookie, "; ", 2);
         }
 
         if (!encode) {
