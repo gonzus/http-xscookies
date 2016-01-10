@@ -6,6 +6,9 @@
 #include "date.h"
 #include "cookie.h"
 
+/* we will do our own URL decoding... */
+#include "tables.h"
+
 static Buffer* cookie_put_value(Buffer* cookie,
                                 const char* name, int nlen,
                                 const char* value, int vlen,
@@ -92,78 +95,72 @@ Buffer* cookie_put_boolean(Buffer* cookie,
     return cookie_put_value(cookie, name, nlen, buf, blen, 1, 0);
 }
 
+#define STATE_START  0
+#define STATE_NAME   1
+#define STATE_EQUALS 2
+#define STATE_VALUE  3
+#define STATE_END    4
+
 Buffer* cookie_get_pair(Buffer* cookie,
                         Buffer* name, Buffer* value,
                         int decode)
 {
-    int state = 0;
-    int npos = 0;
-    int vpos = 0;
-    int nlen = 0;
-    int vlen = 0;
-
-    while (1) {
-        if (cookie->data[cookie->pos] == '\0' || cookie->data[cookie->pos] == ';') {
-            if (state == 1) {
-                nlen = cookie->pos - npos;
-            } else if (state == 3) {
-                vlen = cookie->pos - vpos;
-            }
-            state = 9;
-        } else if (isspace(cookie->data[cookie->pos])) {
-            /* just skip whitespace */
-        } else if (cookie->data[cookie->pos] == '=') {
-            if (state != 1) {
-                state = 9;
+    int state = STATE_START;
+    while (state != STATE_END) {
+        char c = cookie->data[cookie->pos];
+        if (c == '\0' || c == ';') {
+            state = STATE_END;
+        } else if (isspace(c)) {
+        } else if (c == '=') {
+            if (state == STATE_NAME) {
+                state = STATE_EQUALS;
             } else {
-                nlen = cookie->pos - npos;
-                state = 2;
+                state = STATE_END;
             }
         } else {
-            if (state == 0) {
-                npos = cookie->pos;
-                state = 1;
-            } else if (state == 2) {
-                vpos = cookie->pos;
-                state = 3;
+            if (state == STATE_START) {
+                state = STATE_NAME;
+            } else if (state == STATE_EQUALS) {
+                state = STATE_VALUE;
             }
-            /* in any other case, keep reading */
         }
-        ++cookie->pos;
-        if (state == 9) {
-            if (cookie->data[cookie->pos - 1] == '\0') {
-                --cookie->pos;
-            }
-            break;
+
+        switch (state) {
+            case STATE_NAME:
+                buffer_ensure_unused(name, 3);
+                if (c == '%' &&
+                    isxdigit(cookie->data[cookie->pos+1]) &&
+                    isxdigit(cookie->data[cookie->pos+2])) {
+                    /* put a byte together from the next two hex digits */
+                    c = MAKE_BYTE(dectbl[(int)cookie->data[cookie->pos+1]],
+                                  dectbl[(int)cookie->data[cookie->pos+2]]);
+                    cookie->pos += 2;
+                }
+                name->data[name->pos++] = c;
+                ++cookie->pos;
+                break;
+
+            case STATE_VALUE:
+                buffer_ensure_unused(value, 3);
+                if (c == '%' &&
+                    isxdigit(cookie->data[cookie->pos+1]) &&
+                    isxdigit(cookie->data[cookie->pos+2])) {
+                    /* put a byte together from the next two hex digits */
+                    c = MAKE_BYTE(dectbl[(int)cookie->data[cookie->pos+1]],
+                                  dectbl[(int)cookie->data[cookie->pos+2]]);
+                    cookie->pos += 2;
+                }
+                value->data[value->pos++] = c;
+                ++cookie->pos;
+                break;
+
+            default:
+                if (c != '\0') {
+                    ++cookie->pos;
+                }
+                break;
         }
     }
-
-    do {
-        if (!nlen) {
-            break;
-        }
-
-        if (!decode) {
-            buffer_append(name, cookie->data + npos, nlen);
-        } else {
-            Buffer encoded;
-            buffer_wrap(&encoded, cookie->data + npos, nlen);
-            url_decode(&encoded, nlen, name);
-        }
-
-        if (!vlen) {
-            buffer_append(value, "1", 1);
-            break;
-        }
-
-        if (!decode) {
-            buffer_append(value, cookie->data + vpos, vlen);
-        } else {
-            Buffer encoded;
-            buffer_wrap(&encoded, cookie->data + vpos, vlen);
-            url_decode(&encoded, vlen, value);
-        }
-    } while (0);
 
     buffer_terminate(name);
     buffer_terminate(value);
