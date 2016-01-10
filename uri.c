@@ -20,25 +20,17 @@ Buffer* url_decode(Buffer* src, int length,
     int s = src->pos;
     int t = tgt->pos;
     while (s < (src->pos + length)) {
-        /* if current source is not '%', just copy it to target */
-        if (src->data[s] != '%') {
+        if (src->data[s] == '%' &&
+            isxdigit(src->data[s+1]) &&
+            isxdigit(src->data[s+2])) {
+            /* put a byte together from the next two hex digits */
+            tgt->data[t++] = MAKE_BYTE(dectbl[(int)src->data[s+1]],
+                                       dectbl[(int)src->data[s+2]]);
+            /* we used up 3 characters (%XY) from source */
+            s += 3;
+        } else {
             tgt->data[t++] = src->data[s++];
-            continue;
         }
-
-        /* if next two characters are not valid hex digits, abort */
-        if (!isxdigit(src->data[s+1]) ||
-            !isxdigit(src->data[s+2])) {
-            t = 0;
-            break;
-        }
-
-        /* put a byte together from the next two hex digits */
-        tgt->data[t++] = MAKE_BYTE(dectbl[(int)src->data[s+1]],
-                                   dectbl[(int)src->data[s+2]]);
-
-        /* we used up 3 characters (%XY) from source */
-        s += 3;
     }
 
     /* null-terminate target and return src as was left */
