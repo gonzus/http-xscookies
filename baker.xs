@@ -69,7 +69,7 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
         return;
     }
 
-    /* first store cookie name and value */
+    /* first store cookie name and value, URL-encoding both */
     cvalue = SvPV_const(*nval, vlen);
     cookie_put_string(cookie, cname, nlen, cvalue, vlen, 1);
 
@@ -147,7 +147,7 @@ static HV* parse_cookie(pTHX_ SV* pstr)
          * more easily work with it */
         buffer_wrap(&cookie, cstr, slen);
 
-        /* allocate memory for name / value buffers */
+        /* prepare memory for name / value buffers */
         buffer_init(&name , 0);
         buffer_init(&value, 0);
 
@@ -191,6 +191,7 @@ bake_cookie(SV* name, SV* value)
 
   CODE:
     build_cookie(aTHX_ name, value, &cookie);
+    /* TODO: create a new PV here! */
     RETVAL = cookie.data;
 
   OUTPUT: RETVAL
