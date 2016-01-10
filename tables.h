@@ -5,6 +5,9 @@
  *  (unless you know what you are doing)
  */
 
+#define NIBBLE_BITS 4
+#define MAKE_BYTE(nh, nl) (((nh) << NIBBLE_BITS) | (nl))
+
 /*
  * Table has a 0 if that character cannot be a hex digit;
  * otherwise it has the decimal value for that hex digit.
