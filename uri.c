@@ -5,7 +5,7 @@
 /*
  * This file is generated automatically with program "encode".
  */
-#include "tables.h"
+#include "uri_tables.h"
 
 Buffer* url_decode(Buffer* src, int length,
                    Buffer* tgt)

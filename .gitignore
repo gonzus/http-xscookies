@@ -37,3 +37,5 @@ README
 *.tar.gz
 cover_db
 baker.c
+tools/encode/encode
+tools/encode/uri_tables.h

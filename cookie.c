@@ -10,7 +10,7 @@
  * This file is generated automatically with program "encode".
  * We include it because we will do our own URL decoding.
  */
-#include "tables.h"
+#include "uri_tables.h"
 
 static Buffer* cookie_put_value(Buffer* cookie,
                                 const char* name, int nlen,

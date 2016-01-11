@@ -1,8 +1,10 @@
-first: tables.h
+first: all
 
 #-----------
 
 CFLAGS += -Wall -I..
+
+all: uri_tables.h
 
 encode.o: encode.c
 	cc $(CFLAGS) -c -o$@ $^
@@ -10,10 +12,10 @@ encode.o: encode.c
 encode: encode.o
 	cc -Wall -o$@ $^
 
-tables.h: encode
-	./encode > tables.h
+uri_tables.h: encode
+	./encode > uri_tables.h
 
 clean:
 	rm -f encode.o
 	rm -f encode
-	rm -f tables.h
+	rm -f uri_tables.h
