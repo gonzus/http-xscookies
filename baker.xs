@@ -185,25 +185,19 @@ PROTOTYPES: DISABLE
 
 #################################################################
 
-const char*
+SV*
 bake_cookie(SV* name, SV* value)
   PREINIT:
     Buffer cookie;
-    buffer_init(&cookie, 0);
-
   CODE:
+    buffer_init(&cookie, 0);
     build_cookie(aTHX_ name, value, &cookie);
-    /* TODO: create a new PV here! */
-    RETVAL = cookie.data;
-
-  OUTPUT: RETVAL
-
-  CLEANUP:
+    RETVAL = newSVpv(cookie.data, cookie.pos);
     buffer_fini(&cookie);
+  OUTPUT: RETVAL
 
 SV*
 crush_cookie(SV* str)
   CODE:
     RETVAL = newRV_noinc((SV *) parse_cookie(aTHX_ str));
-
   OUTPUT: RETVAL
