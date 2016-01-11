@@ -24,8 +24,8 @@ Buffer* url_decode(Buffer* src, int length,
             isxdigit(src->data[s+1]) &&
             isxdigit(src->data[s+2])) {
             /* put a byte together from the next two hex digits */
-            tgt->data[t++] = MAKE_BYTE(dectbl[(int)src->data[s+1]],
-                                       dectbl[(int)src->data[s+2]]);
+            tgt->data[t++] = MAKE_BYTE(uri_decode_tbl[(int)src->data[s+1]],
+                                       uri_decode_tbl[(int)src->data[s+2]]);
             /* we used up 3 characters (%XY) from source */
             s += 3;
         } else {
@@ -53,7 +53,7 @@ Buffer* url_encode(Buffer* src, int length,
     int s = src->pos;
     int t = tgt->pos;
     while (s < (src->pos + length)) {
-        char* v = enctbl[(int)src->data[s]];
+        char* v = uri_encode_tbl[(int)src->data[s]];
 
         /* if current source character doesn't need to be encoded,
            just copy it to target*/

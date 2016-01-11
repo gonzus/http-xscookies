@@ -98,66 +98,45 @@ Buffer* cookie_put_boolean(Buffer* cookie,
     return cookie_put_value(cookie, name, nlen, buf, blen, 1, 0);
 }
 
-#define STATE_START  0
-#define STATE_NAME   1
-#define STATE_EQUALS 2
-#define STATE_VALUE  3
-#define STATE_END    4
-
 Buffer* cookie_get_pair(Buffer* cookie,
                         Buffer* name, Buffer* value)
 {
     int ncur = name->pos;
     int vcur = value->pos;
-    for (int state = STATE_START; state != STATE_END; ) {
+    for (int state = URI_STATE_START; state != URI_STATE_END; ) {
         char c = cookie->data[cookie->pos];
-        if (c == '\0' || c == ';') {
-            state = STATE_END;
-        } else if (isspace(c)) {
-        } else if (c == '=') {
-            if (state == STATE_NAME) {
-                state = STATE_EQUALS;
-            } else {
-                state = STATE_END;
-            }
-        } else {
-            if (state == STATE_START) {
-                state = STATE_NAME;
-            } else if (state == STATE_EQUALS) {
-                state = STATE_VALUE;
-            }
-        }
+        state = uri_state_tbl[(int)c][state];
 
         switch (state) {
-            case STATE_NAME:
+            case URI_STATE_NAME:
                 buffer_ensure_unused(name, 3);
                 if (c == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
                     /* put a byte together from the next two hex digits */
-                    c = MAKE_BYTE(dectbl[(int)cookie->data[cookie->pos+1]],
-                                  dectbl[(int)cookie->data[cookie->pos+2]]);
+                    c = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->pos+1]],
+                                  uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
                     cookie->pos += 2;
                 }
                 name->data[name->pos++] = c;
                 ++cookie->pos;
                 break;
 
-            case STATE_VALUE:
+            case URI_STATE_VALUE:
                 buffer_ensure_unused(value, 3);
                 if (c == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
                     /* put a byte together from the next two hex digits */
-                    c = MAKE_BYTE(dectbl[(int)cookie->data[cookie->pos+1]],
-                                  dectbl[(int)cookie->data[cookie->pos+2]]);
+                    c = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->pos+1]],
+                                  uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
                     cookie->pos += 2;
                 }
                 value->data[value->pos++] = c;
                 ++cookie->pos;
                 break;
 
-            case STATE_END:
+            case URI_STATE_END:
                 if (c == '=') {
                     name->pos = ncur;
                     value->pos = vcur;
