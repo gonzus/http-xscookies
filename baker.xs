@@ -154,7 +154,7 @@ static HV* parse_cookie(pTHX_ SV* pstr)
         buffer_init(&value, 0);
 
         while (1) {
-            cookie_get_pair(&cookie, &name, &value, 1);
+            cookie_get_pair(&cookie, &name, &value);
             if (name.pos == 0) {
                 /* got an empty name => ran out of data */
                 break;
