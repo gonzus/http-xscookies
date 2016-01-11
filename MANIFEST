@@ -17,3 +17,8 @@ README.md
 tables.h
 uri.c
 uri.h
+t/10_bake_crush.t
+t/80_memory_leak.t
+tools/bench.pl
+tools/encode/encode.c
+tools/encode/Makefile
