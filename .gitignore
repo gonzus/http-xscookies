@@ -1,7 +1,5 @@
 META.yml
 
-Makefile
-
 blib/
 
 inc/
@@ -10,7 +8,7 @@ pm_to_blib
 
 MANIFEST.bak
 
-Makefile
+/Makefile
 #ppport.h
 *.sw[po]
 *.bak
