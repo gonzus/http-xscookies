@@ -1,5 +1,4 @@
 baker.xs
-buffer.c
 buffer.h
 Changes
 cookie.c
