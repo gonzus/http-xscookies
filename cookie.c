@@ -107,8 +107,9 @@ Buffer* cookie_put_boolean(Buffer* cookie,
 Buffer* cookie_get_pair(Buffer* cookie,
                         Buffer* name, Buffer* value)
 {
-    int state = STATE_START;
-    while (state != STATE_END) {
+    int ncur = name->pos;
+    int vcur = value->pos;
+    for (int state = STATE_START; state != STATE_END; ) {
         char c = cookie->data[cookie->pos];
         if (c == '\0' || c == ';') {
             state = STATE_END;
@@ -156,10 +157,18 @@ Buffer* cookie_get_pair(Buffer* cookie,
                 ++cookie->pos;
                 break;
 
-            default:
+            case STATE_END:
+                if (c == '=') {
+                    name->pos = ncur;
+                    value->pos = vcur;
+                }
                 if (c != '\0') {
                     ++cookie->pos;
                 }
+                break;
+
+            default:
+                ++cookie->pos;
                 break;
         }
     }
