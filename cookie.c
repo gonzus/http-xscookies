@@ -105,8 +105,7 @@ Buffer* cookie_put_boolean(Buffer* cookie,
 #define STATE_END    4
 
 Buffer* cookie_get_pair(Buffer* cookie,
-                        Buffer* name, Buffer* value,
-                        int decode)
+                        Buffer* name, Buffer* value)
 {
     int state = STATE_START;
     while (state != STATE_END) {

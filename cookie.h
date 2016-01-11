@@ -24,7 +24,6 @@ Buffer* cookie_put_boolean(Buffer* cookie,
                           int value);
 
 Buffer* cookie_get_pair(Buffer* cookie,
-                        Buffer* name, Buffer* value,
-                        int decode);
+                        Buffer* name, Buffer* value);
 
 #endif
