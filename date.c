@@ -95,19 +95,19 @@ double date_compute(const char *date)
     }
     switch (term) {
         case 'y':
-            offset *= 86400 * 365;
+            offset *= 24 * 60 * 60 * 365;
             break;
 
         case 'M':
-            offset *= 86400 * 30;
+            offset *= 24 * 60 * 60 * 30;
             break;
 
         case 'd':
-            offset *= 86400;
+            offset *= 24 * 60 * 60;
             break;
 
         case 'h':
-            offset *= 3600;
+            offset *= 60 * 60;
             break;
 
         case 'm':
