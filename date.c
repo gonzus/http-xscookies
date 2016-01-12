@@ -28,24 +28,24 @@ double date_compute(const char *date)
         char c = date[e];
         if (isspace(c)) {
             if (state > 0) {
-                return 0;
+                return -1;
             }
             continue;
         } else if (c == '+') {
             if (state >= 1) {
-                return 0;
+                return -1;
             }
             state = 1;
             negative = 0;
         } else if (c == '-') {
             if (state >= 1) {
-                return 0;
+                return -1;
             }
             state = 1;
             negative = 1;
         } else if (isdigit(c)) {
             if (state > 2) {
-                return 0;
+                return -1;
             }
             state = 2;
             part[p] = 10 * part[p] + c - '0';
@@ -54,10 +54,10 @@ double date_compute(const char *date)
             }
         } else if (c == '.') {
             if (state > 2) {
-                return 0;
+                return -1;
             }
             if (p >= 1) {
-                return 0;
+                return -1;
             }
             state = 2;
             ++p;
@@ -68,18 +68,18 @@ double date_compute(const char *date)
                    c == 'm' ||
                    c == 's') {
             if (state >= 3) {
-                return 0;
+                return -1;
             }
             state = 3;
             term = c;
         } else {
-            return 0;
+            return -1;
         }
     }
 
     /* We require at least a number */
     if (state < 2) {
-        return 0;
+        return -1;
     }
 
     double offset = (double) part[0];
