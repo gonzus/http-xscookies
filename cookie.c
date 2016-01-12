@@ -132,7 +132,6 @@ Buffer* cookie_get_pair(Buffer* cookie,
 {
     int ncur = name->pos;
     int vcur = value->pos;
-    int nend = 0;
     int vend = 0;
     int seen_equals = 0;
 
@@ -159,9 +158,6 @@ Buffer* cookie_get_pair(Buffer* cookie,
                     name->data[name->pos++] = c;
                     ++cookie->pos;
                 }
-                if (!isspace(c)) {
-                    nend = name->pos;
-                }
                 break;
 
             /* If we are reading the value part, add the current
@@ -184,6 +180,7 @@ Buffer* cookie_get_pair(Buffer* cookie,
                 }
                 break;
 
+            /* Remember if we ever saw an '=' while parsing. */
             case URI_STATE_EQUALS:
                 seen_equals = 1;
                 ++cookie->pos;
@@ -212,12 +209,11 @@ Buffer* cookie_get_pair(Buffer* cookie,
         }
     }
 
-    if (nend) {
-        name->pos = nend;
-    }
+    /* Maybe correct end position for value. */
     if (vend) {
         value->pos = vend;
     }
+    /* If we saw no '=', reset name buffer, value is invalid. */
     if (!seen_equals) {
         name->pos = ncur;
     }
