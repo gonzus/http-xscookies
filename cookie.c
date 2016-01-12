@@ -62,6 +62,9 @@ Buffer* cookie_put_date(Buffer* cookie,
                         const char* value)
 {
     double date = date_compute(value);
+    if (date < 0) {
+        return cookie_put_value(cookie, name, nlen, value, 0, 0, 0);
+    }
 
     Buffer format;
     buffer_init(&format, 0);
