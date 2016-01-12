@@ -4,6 +4,7 @@
 #include "XSUB.h"
 #include "ppport.h"
 
+#include <strings.h>
 #include "buffer.h"
 #include "cookie.h"
 
@@ -112,15 +113,18 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
 
         /* TODO: should we skip if cvalue is invalid / empty? */
 
-        if (strcmp(key, COOKIE_NAME_DOMAIN   ) == 0 ||
-            strcmp(key, COOKIE_NAME_PATH     ) == 0 ||
-            strcmp(key, COOKIE_NAME_MAX_AGE  ) == 0) {
-            cookie_put_string (cookie, key  , klen, cvalue, vlen, 0);
-        } else if (strcmp(key, COOKIE_NAME_EXPIRES  ) == 0) {
-            cookie_put_date   (cookie, key  , klen, cvalue);
-        } else if (strcmp(key, COOKIE_NAME_SECURE   ) == 0 ||
-                   strcmp(key, COOKIE_NAME_HTTP_ONLY) == 0) {
-            cookie_put_boolean(cookie, key  , klen, 1);
+        if      (strcasecmp(key, COOKIE_NAME_DOMAIN) == 0) {
+            cookie_put_string (cookie, COOKIE_NAME_DOMAIN   , sizeof(COOKIE_NAME_DOMAIN)    - 1, cvalue, vlen, 0);
+        } else if (strcasecmp(key, COOKIE_NAME_PATH      ) == 0) {
+            cookie_put_string (cookie, COOKIE_NAME_PATH     , sizeof(COOKIE_NAME_PATH)      - 1, cvalue, vlen, 0);
+        } else if (strcasecmp(key, COOKIE_NAME_MAX_AGE   ) == 0) {
+            cookie_put_string (cookie, COOKIE_NAME_MAX_AGE  , sizeof(COOKIE_NAME_MAX_AGE)   - 1, cvalue, vlen, 0);
+        } else if (strcasecmp(key, COOKIE_NAME_EXPIRES   ) == 0) {
+            cookie_put_date (cookie, COOKIE_NAME_EXPIRES    , sizeof(COOKIE_NAME_EXPIRES)   - 1, cvalue);
+        } else if (strcasecmp(key, COOKIE_NAME_SECURE    ) == 0) {
+            cookie_put_boolean(cookie, COOKIE_NAME_SECURE   , sizeof(COOKIE_NAME_SECURE)    - 1, 1);
+        } else if (strcasecmp(key, COOKIE_NAME_HTTP_ONLY ) == 0) {
+            cookie_put_boolean(cookie, COOKIE_NAME_HTTP_ONLY, sizeof(COOKIE_NAME_HTTP_ONLY) - 1, 1);
         }
     }
 }
