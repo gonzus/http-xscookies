@@ -132,6 +132,9 @@ Buffer* cookie_get_pair(Buffer* cookie,
 {
     int ncur = name->pos;
     int vcur = value->pos;
+    int nend = 0;
+    int vend = 0;
+    int seen_equals = 0;
 
     /* State machine start in URI_STATE_START state */
     for (int state = URI_STATE_START; state != URI_STATE_END; ) {
@@ -156,6 +159,9 @@ Buffer* cookie_get_pair(Buffer* cookie,
                     name->data[name->pos++] = c;
                     ++cookie->pos;
                 }
+                if (!isspace(c)) {
+                    nend = name->pos;
+                }
                 break;
 
             /* If we are reading the value part, add the current
@@ -173,6 +179,14 @@ Buffer* cookie_get_pair(Buffer* cookie,
                     value->data[value->pos++] = c;
                     ++cookie->pos;
                 }
+                if (!isspace(c)) {
+                    vend = value->pos;
+                }
+                break;
+
+            case URI_STATE_EQUALS:
+                seen_equals = 1;
+                ++cookie->pos;
                 break;
 
             /* End state, we will leave the loop. */
@@ -196,6 +210,16 @@ Buffer* cookie_get_pair(Buffer* cookie,
                 ++cookie->pos;
                 break;
         }
+    }
+
+    if (nend) {
+        name->pos = nend;
+    }
+    if (vend) {
+        value->pos = vend;
+    }
+    if (!seen_equals) {
+        name->pos = ncur;
     }
 
     /* Terminate both output buffers and return. */
