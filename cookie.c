@@ -144,7 +144,7 @@ Buffer* cookie_get_pair(Buffer* cookie,
             /* If we are reading the name part, add the current
              * character (possibly URL-decoded) */
             case URI_STATE_NAME:
-                buffer_ensure_unused(name, 3);
+                buffer_ensure_unused(name, 1);
                 if (c == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
@@ -161,7 +161,7 @@ Buffer* cookie_get_pair(Buffer* cookie,
             /* If we are reading the value part, add the current
              * character (possibly URL-decoded) */
             case URI_STATE_VALUE:
-                buffer_ensure_unused(value, 3);
+                buffer_ensure_unused(value, 1);
                 if (c == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
