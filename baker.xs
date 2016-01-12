@@ -96,11 +96,18 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
             continue;
         }
 
-        cvalue = 0;
         vlen = 0;
         val = hv_iterval(values, entry);
-        if (SvOK(val) && SvPOK(val)) {
-            cvalue = SvPV_const(val, vlen);
+        if (!SvOK(val)) {
+            continue;
+        }
+        if (SvIOK(val) && !SvIV(val)) {
+            continue;
+        }
+
+        cvalue = SvPV_const(val, vlen);
+        if (cvalue == 0) {
+            continue;
         }
 
         /* TODO: should we skip if cvalue is invalid / empty? */
