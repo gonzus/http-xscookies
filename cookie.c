@@ -119,13 +119,14 @@ Buffer* cookie_put_boolean(Buffer* cookie,
  *   URI_STATE_EQUALS Just saw the '=' between name and value
  *   URI_STATE_VALUE  Parsing the value component
  *   URI_STATE_END    End parsing
+ *   URI_STATE_ERROR  Error while parsing
  *
  * In order to achieve the maximum performance, this state machine
  * is represented in a precomputed table called uri_state_tbl[c][s],
  * whose values depend on the current character and current state.
  * This table (as well as the other tables that ease the process
  * of URL encoding and decoding) was generated with a C program,
- * tools/encode/encode.
+ * which can be found in tools/encode/encode.
  */
 Buffer* cookie_get_pair(Buffer* cookie,
                         Buffer* name, Buffer* value)
@@ -133,21 +134,24 @@ Buffer* cookie_get_pair(Buffer* cookie,
     int ncur = name->pos;
     int vcur = value->pos;
     int vend = 0;
-    int seen_equals = 0;
+    int state = 0;
+    int current = 0;
 
-    /* State machine start in URI_STATE_START state */
-    for (int state = URI_STATE_START; state != URI_STATE_END; ) {
+    /* State machine starts in URI_STATE_START state and
+     * will loop until we enter any state that is
+     * >= URI_STATE_TERMINATE */
+    for (state = URI_STATE_START; state < URI_STATE_TERMINATE; ) {
         /* Switch to next state based on last character read
          * and current state. */
-        char c = cookie->data[cookie->pos];
-        state = uri_state_tbl[(int)c][state];
+        current = cookie->data[cookie->pos];
+        state = uri_state_tbl[current][state];
 
         switch (state) {
             /* If we are reading the name part, add the current
              * character (possibly URL-decoded) */
             case URI_STATE_NAME:
                 buffer_ensure_unused(name, 1);
-                if (c == '%' &&
+                if (current == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
                     /* put a byte together from the next two hex digits */
@@ -155,7 +159,8 @@ Buffer* cookie_get_pair(Buffer* cookie,
                                                         uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
                     cookie->pos += 3;
                 } else {
-                    name->data[name->pos++] = c;
+                    /* just copy current character */
+                    name->data[name->pos++] = current;
                     ++cookie->pos;
                 }
                 break;
@@ -164,41 +169,21 @@ Buffer* cookie_get_pair(Buffer* cookie,
              * character (possibly URL-decoded) */
             case URI_STATE_VALUE:
                 buffer_ensure_unused(value, 1);
-                if (c == '%' &&
+                if (current == '%' &&
                     isxdigit(cookie->data[cookie->pos+1]) &&
                     isxdigit(cookie->data[cookie->pos+2])) {
                     /* put a byte together from the next two hex digits */
                     value->data[value->pos++] = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->pos+1]],
                                                           uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
                     cookie->pos += 3;
-                } else {
-                    value->data[value->pos++] = c;
-                    ++cookie->pos;
-                }
-                if (!isspace(c)) {
                     vend = value->pos;
-                }
-                break;
-
-            /* Remember if we ever saw an '=' while parsing. */
-            case URI_STATE_EQUALS:
-                seen_equals = 1;
-                ++cookie->pos;
-                break;
-
-            /* End state, we will leave the loop. */
-            case URI_STATE_END:
-                /* If we are in the end state and the last character read
-                 * does not indicate we reached the end of this name=value
-                 * part, we reset the output buffers. */
-                if (c == '=') {
-                    name->pos = ncur;
-                    value->pos = vcur;
-                }
-
-                /* Increase current position only if not EOS */
-                if (c != '\0') {
+                } else {
+                    /* just copy current character */
+                    value->data[value->pos++] = current;
                     ++cookie->pos;
+                    if (!isspace(current)) {
+                        vend = value->pos;
+                    }
                 }
                 break;
 
@@ -209,13 +194,20 @@ Buffer* cookie_get_pair(Buffer* cookie,
         }
     }
 
-    /* Maybe correct end position for value. */
-    if (vend) {
-        value->pos = vend;
+    /* If last character seen was EOS, we have already incremented
+     * the buffer position once too many; correct that. */
+    if (current == '\0') {
+        --cookie->pos;
     }
-    /* If we saw no '=', reset name buffer, value is invalid. */
-    if (!seen_equals) {
+    /* If we didn't end in URI_STATE_END, reset buffers. */
+    if (state != URI_STATE_END) {
         name->pos = ncur;
+        value->pos = vcur;
+    } else {
+        /* Maybe correct end position for value. */
+        if (vend) {
+            value->pos = vend;
+        }
     }
 
     /* Terminate both output buffers and return. */
