@@ -126,21 +126,23 @@ static void encode_table(const char* name)
     printf("};\n\n");
 }
 
-#define URI_STATE_NAME   0
-#define URI_STATE_VALUE  1
-#define URI_STATE_START  2
-#define URI_STATE_EQUALS 3
+#define URI_STATE_START  0
+#define URI_STATE_NAME   1
+#define URI_STATE_EQUALS 2
+#define URI_STATE_VALUE  3
 #define URI_STATE_END    4
+#define URI_STATE_ERROR  5
 
 static void state_table(const char* name)
 {
     static const char* states[] =
     {
-        "URI_STATE_NAME",
-        "URI_STATE_VALUE",
         "URI_STATE_START",
+        "URI_STATE_NAME",
         "URI_STATE_EQUALS",
+        "URI_STATE_VALUE",
         "URI_STATE_END",
+        "URI_STATE_ERROR",
     };
     int size = sizeof(states) / sizeof(states[0]);
     printf("/*\n");
@@ -151,6 +153,9 @@ static void state_table(const char* name)
     for (int state = 0; state < size; ++state) {
         printf("#define %-20.20s %2d\n", states[state], state);
     }
+    printf("\n");
+    printf("/* Minimum state that indicates we must terminate processing */\n");
+    printf("#define %-20.20s %s\n", "URI_STATE_TERMINATE", "URI_STATE_END");
     printf("\n");
 
     printf("static char %s[%d][%d] =\n", name, NIBBLE*NIBBLE, size+1);
@@ -166,19 +171,34 @@ static void state_table(const char* name)
         for (int state = 0; state < size; ++state) {
             int next = state;
             if (c == '\0' || c == ';') {
-                next = URI_STATE_END;
+                /* If we see the end and are in state NAME, we consider
+                 * it an error, because we demmand to at least have
+                 * seen an '='. */
+                if (state == URI_STATE_EQUALS ||
+                    state == URI_STATE_VALUE) {
+                    next = URI_STATE_END;
+                } else {
+                    next = URI_STATE_ERROR;
+                }
             } else if (isspace(c)) {
+                /* remain in same state */
             } else if (c == '=') {
+                /* A '=' is only allowed while in state NAME */
                 if (state == URI_STATE_NAME) {
                     next = URI_STATE_EQUALS;
                 } else {
-                    next = URI_STATE_END;
+                    next = URI_STATE_ERROR;
                 }
             } else {
+                /* Any other character either marks the fact that
+                 * we are entering state NAME or VALUE, or that
+                 * we are remaining in those states. */
                 if (state == URI_STATE_START) {
                     next = URI_STATE_NAME;
                 } else if (state == URI_STATE_EQUALS) {
                     next = URI_STATE_VALUE;
+                } else {
+                    /* remain in same state */
                 }
             }
             printf("%3d, ", next);
