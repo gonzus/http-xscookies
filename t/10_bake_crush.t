@@ -25,13 +25,25 @@ my @cookie_list = (
         expires => 'Sun, 10-Jan-2016 18:19:29 GMT',
     },
     {
-        string => 'name=Gonzo; path=/tmp/foo; path=/tmp/bar',
+        string => 'name=Gandalf; path=/tmp/foo; path=/tmp/bar',
         name => 'name',
         fields => {
-            'value' => 'Gonzo',
+            'value' => 'Gandalf',
             'path' => '/tmp/foo',
         },
-        result => 'name=Gonzo; path=/tmp/foo',
+        result => 'name=Gandalf; path=/tmp/foo',
+    },
+    {
+        string => 'Bilbo%26Frodo=Foo%20Bar; path=%2bMERRY%2b;',
+        name => 'Bilbo&Frodo',
+        fields => {
+            'value' => 'Foo Bar',
+            'path'  => '+MERRY+',
+        },
+        # I would have expected the value of path should be URL encoded
+        # however other tests from Cookie::Baker(::XS)? seem to state
+        # this is not the case...
+        result => 'Bilbo%26Frodo=Foo%20Bar; path=+MERRY+',
     },
 );
 
