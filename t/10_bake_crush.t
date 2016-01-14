@@ -51,7 +51,7 @@ sub test_crush_cookie {
         for my $key (keys %$crushed) {
             my $k = $key eq $cookie->{name} ? 'value' : $key;
             my $v = $key eq 'expires' ? $cookie->{expires} : $cookie->{fields}{$k};
-            is($crushed->{$key}, $v, $key);
+            is($crushed->{$key}, $v, 'crush ' . $key);
         }
     }
 }
@@ -60,7 +60,7 @@ sub test_bake_cookie {
     for my $cookie (@cookie_list) {
         my $c = _sort_cookie(bake_cookie($cookie->{name}, $cookie->{fields}));
         my $result = $cookie->{result} // _sort_cookie($cookie->{string});
-        is($c, $result, $cookie->{name});
+        is($c, $result, 'bake ' . $cookie->{name});
     }
 }
 
@@ -71,7 +71,8 @@ sub _sort_cookie {
     my $value;
     my %data;
     my $first = 1;
-    for my $pair (split(/;[ \t]*/, $cookie)) {
+    my @pairs = split(/;[ \t]*/, $cookie);
+    for my $pair (@pairs) {
         my ($k, $v) = split('=', $pair);
         if ($first) {
             $name = $k;
