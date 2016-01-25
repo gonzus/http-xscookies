@@ -2,8 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Time time => 1381154217;
-use Devel::Cookie qw[crush_cookie bake_cookie];
+use HTTP::XSCookie qw[crush_cookie bake_cookie];
 
 exit main();
 

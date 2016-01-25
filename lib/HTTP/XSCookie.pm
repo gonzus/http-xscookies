@@ -1,4 +1,4 @@
-package Devel::Cookie;
+package HTTP::XSCookie;
 
 use strict;
 use warnings;
@@ -7,7 +7,7 @@ use XSLoader;
 use parent 'Exporter';
 
 our $VERSION = '0.000001';
-XSLoader::load( 'Devel::Cookie', $VERSION );
+XSLoader::load( 'HTTP::XSCookie', $VERSION );
 
 our @EXPORT_OK = qw[bake_cookie crush_cookie];
 
@@ -21,7 +21,7 @@ __END__
 
 =head1 NAME
 
-Devel::Cookie - Quick and dirty cookie mangling for Perl
+HTTP::XSCookie - Quick & dirty cookie mangling for Perl
 
 =head1 VERSION
 

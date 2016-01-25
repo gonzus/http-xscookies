@@ -2,9 +2,9 @@ use 5.008009;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME           => 'Devel::Cookie',
-    VERSION_FROM   => 'lib/Devel/Cookie.pm',
-    ABSTRACT_FROM  => 'lib/Devel/Cookie.pm',
+    NAME           => 'HTTP::XSCookie',
+    VERSION_FROM   => 'lib/HTTP/XSCookie.pm',
+    ABSTRACT_FROM  => 'lib/HTTP/XSCookie.pm',
     LICENSE        => 'mit',
     MIN_PERL_VERSION => 5.008009,
     PREREQ_PM      => {
@@ -26,8 +26,8 @@ WriteMakefile(
         resources   => {
             repository => {
                 type => 'git',
-                url  => 'git@github.com:gonzus/devel-cookie',
-                web  => 'https://github.com/gonzus/devel-cookie',
+                url  => 'git@github.com:gonzus/http-xscookie',
+                web  => 'https://github.com/gonzus/http-xscookie',
             },
         },
     },
