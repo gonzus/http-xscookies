@@ -6,7 +6,7 @@ use blib;
 use Dumbbench;
 use Cookie::Baker     ();
 use Cookie::Baker::XS ();
-use Devel::Cookie     ();
+use HTTP::XSCookies   ();
 
 exit main();
 
@@ -63,10 +63,10 @@ sub run_benchmark {
         ),
 
         Dumbbench::Instance::PerlSub->new(
-            name => get_name('Devel::Cookie', $name),
+            name => get_name('HTTP::XSCookies', $name),
             code => sub {
                 for(1..$iterations){
-                    Devel::Cookie::crush_cookie($cookie);
+                    HTTP::XSCookies::crush_cookie($cookie);
                 }
             },
         ),

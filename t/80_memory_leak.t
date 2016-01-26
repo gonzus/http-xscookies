@@ -10,7 +10,7 @@ eval { require Test::MemoryGrowth; 1; }
 my $cookie = 'foo=bar; path=/';
 
 Test::MemoryGrowth::no_growth(sub {
-    Devel::Cookie::crush_cookie($cookie);
+    HTTP::XSCookies::crush_cookie($cookie);
 });
 
 done_testing;
