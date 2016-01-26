@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use HTTP::XSCookie qw[crush_cookie bake_cookie];
+use HTTP::XSCookies qw[crush_cookie bake_cookie];
 
 my @cookie_list = (
     {

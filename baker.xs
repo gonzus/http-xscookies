@@ -191,7 +191,7 @@ static HV* parse_cookie(pTHX_ SV* pstr)
 }
 
 
-MODULE = HTTP::XSCookie        PACKAGE = HTTP::XSCookie
+MODULE = HTTP::XSCookies        PACKAGE = HTTP::XSCookies
 PROTOTYPES: DISABLE
 
 #################################################################

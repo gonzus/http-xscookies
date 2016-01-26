@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use HTTP::XSCookie;
+use HTTP::XSCookies;
 
 eval { require Test::MemoryGrowth; 1; }
   or plan skip_all => 'Test::MemoryGrowth is needed for this test';

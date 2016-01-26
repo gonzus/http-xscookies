@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use HTTP::XSCookie qw[crush_cookie];
+use HTTP::XSCookies qw[crush_cookie];
 
 exit main();
 
