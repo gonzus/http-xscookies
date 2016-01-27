@@ -183,9 +183,15 @@ static void state_table(const char* name)
             } else if (isspace(c)) {
                 /* remain in same state */
             } else if (c == '=') {
-                /* A '=' is only allowed while in state NAME */
+                /* A '=' switches from NAME to EQUALS... */
                 if (state == URI_STATE_NAME) {
                     next = URI_STATE_EQUALS;
+                /* ... or from EQUALS to VALUE (as first character in VALUE) */
+                } else if (state == URI_STATE_EQUALS) {
+                    next = URI_STATE_VALUE;
+                /* ... or remains in VALUE... */
+                } else if (state == URI_STATE_VALUE) {
+                /* ... otherwise it is an error. */
                 } else {
                     next = URI_STATE_ERROR;
                 }
