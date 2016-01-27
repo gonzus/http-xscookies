@@ -45,6 +45,16 @@ my @cookie_list = (
         # this is not the case...
         result => 'Bilbo%26Frodo=Foo%20Bar; path=+MERRY+',
     },
+    {
+        # Test case reported by Peter Mottram
+        string => 'cookie.a=foo=bar; cookie.b=1234abcd; no.value.cookie',
+        name => 'cookie.a',
+        fields => {
+            'value' => 'foo=bar',
+            'cookie.b' => '1234abcd',
+        },
+        result => 'cookie.a=foo%3dbar',
+    },
 );
 
 exit main();
