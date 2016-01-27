@@ -73,7 +73,12 @@ sub test_crush_cookie {
         for my $key (keys %$crushed) {
             my $k = $key eq $cookie->{name} ? 'value' : $key;
             my $v = $key eq 'expires' ? $cookie->{expires} : $cookie->{fields}{$k};
-            is($crushed->{$key}, $v, 'crush ' . $key);
+            is($crushed->{$key}, $v, 'crush1-' . $key);
+        }
+        for my $key (keys %{$cookie->{fields}}) {
+            my $k = $key eq 'value' ? $cookie->{name} : $key;
+            my $v = $key eq 'expires' ? $cookie->{expires} : $cookie->{fields}{$key};
+            is($v, $crushed->{$k}, 'crush2-' . $key);
         }
     }
 }
