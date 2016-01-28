@@ -6,44 +6,44 @@ use HTTP::XSCookies qw[crush_cookie bake_cookie];
 
 my @cookie_list = (
     {
-        string => 'foo=bar; path=/',
+        string => 'foo=bar; Path=/',
         name => 'foo',
         fields => {
             'value' => 'bar',
-            'path' => '/',
+            'Path' => '/',
         },
     },
     {
-        string => 'whv=MtW_XszVxqHnN6rHsX0d; expires=Sun, 10-Jan-2016 18:19:29 GMT; domain=.wikihow.com; path=',
+        string => 'whv=MtW_XszVxqHnN6rHsX0d; Expires=Sun, 10-Jan-2016 18:19:29 GMT; Domain=.wikihow.com; Path=',
         name => 'whv',
         fields => {
             'value' => 'MtW_XszVxqHnN6rHsX0d',
-            'expires' => '1452449969',
-            'domain' => '.wikihow.com',
-            'path' => '',
+            'Expires' => '1452449969',
+            'Domain' => '.wikihow.com',
+            'Path' => '',
         },
         expires => 'Sun, 10-Jan-2016 18:19:29 GMT',
     },
     {
-        string => 'name=Gandalf; path=/tmp/foo; path=/tmp/bar',
+        string => 'name=Gandalf; Path=/tmp/foo; Path=/tmp/bar',
         name => 'name',
         fields => {
             'value' => 'Gandalf',
-            'path' => '/tmp/foo',
+            'Path' => '/tmp/foo',
         },
-        result => 'name=Gandalf; path=/tmp/foo',
+        result => 'name=Gandalf; Path=/tmp/foo',
     },
     {
-        string => 'Bilbo%26Frodo=Foo%20Bar; path=%2bMERRY%2b;',
+        string => 'Bilbo%26Frodo=Foo%20Bar; Path=%2bMERRY%2b;',
         name => 'Bilbo&Frodo',
         fields => {
             'value' => 'Foo Bar',
-            'path'  => '+MERRY+',
+            'Path'  => '+MERRY+',
         },
         # I would have expected the value of path should be URL encoded
         # however other tests from Cookie::Baker(::XS)? seem to state
         # this is not the case...
-        result => 'Bilbo%26Frodo=Foo%20Bar; path=+MERRY+',
+        result => 'Bilbo%26Frodo=Foo%20Bar; Path=+MERRY+',
     },
     {
         # Test case reported by Peter Mottram
@@ -72,12 +72,12 @@ sub test_crush_cookie {
         my $crushed = crush_cookie($cookie->{string});
         for my $key (keys %$crushed) {
             my $k = $key eq $cookie->{name} ? 'value' : $key;
-            my $v = $key eq 'expires' ? $cookie->{expires} : $cookie->{fields}{$k};
+            my $v = $key eq 'Expires' ? $cookie->{expires} : $cookie->{fields}{$k};
             is($crushed->{$key}, $v, 'crush1-' . $key);
         }
         for my $key (keys %{$cookie->{fields}}) {
             my $k = $key eq 'value' ? $cookie->{name} : $key;
-            my $v = $key eq 'expires' ? $cookie->{expires} : $cookie->{fields}{$key};
+            my $v = $key eq 'Expires' ? $cookie->{expires} : $cookie->{fields}{$key};
             is($v, $crushed->{$k}, 'crush2-' . $key);
         }
     }

@@ -12,11 +12,11 @@
  * Possible field names in a cookie.
  */
 #define COOKIE_NAME_VALUE      "value"
-#define COOKIE_NAME_DOMAIN     "domain"
-#define COOKIE_NAME_PATH       "path"
-#define COOKIE_NAME_MAX_AGE    "max-age"
-#define COOKIE_NAME_EXPIRES    "expires"
-#define COOKIE_NAME_SECURE     "secure"
+#define COOKIE_NAME_DOMAIN     "Domain"
+#define COOKIE_NAME_PATH       "Path"
+#define COOKIE_NAME_MAX_AGE    "Max-Age"
+#define COOKIE_NAME_EXPIRES    "Expires"
+#define COOKIE_NAME_SECURE     "Secure"
 #define COOKIE_NAME_HTTP_ONLY  "HttpOnly"
 
 /*

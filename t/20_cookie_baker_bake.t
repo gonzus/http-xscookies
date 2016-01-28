@@ -21,12 +21,12 @@ sub test_bake_simple {
         [ 't100', 'foo', 'val', 'foo=val'],
         [ 't101', 'foo', { value => 'val' }, 'foo=val'],
         [ 't102', 'foo', { value => 'foo bar baz' }, 'foo=foo%20bar%20baz'],
-        [ 't103', 'foo', { value => 'val',expires => undef }, 'foo=val'],
-        [ 't104', 'foo', { value => 'val',path => '/' }, 'foo=val; path=/'],
-        [ 't105', 'foo', { value => 'val',path => '/', secure => 1, httponly => 0 }, 'foo=val; path=/; secure'],
-        [ 't106', 'foo', { value => 'val',path => '/', secure => 0, httponly => 1 }, 'foo=val; path=/; HttpOnly'],
-        [ 't107', 'foo', { value => 'val',expires => 'foo' }, 'foo=val; expires=foo'],
-        [ 't108', 'foo', { value => 'val',expires => $now + 24*60*60 }, sprintf('foo=val; expires=%s', fmt($now + 24*60*60))],
+        [ 't103', 'foo', { value => 'val', Expires => undef }, 'foo=val'],
+        [ 't104', 'foo', { value => 'val', Path => '/' }, 'foo=val; Path=/'],
+        [ 't105', 'foo', { value => 'val', Path => '/', Secure => 1, HttpOnly => 0 }, 'foo=val; Path=/; Secure'],
+        [ 't106', 'foo', { value => 'val', Path => '/', Secure => 0, HttpOnly => 1 }, 'foo=val; Path=/; HttpOnly'],
+        [ 't107', 'foo', { value => 'val', Expires => 'foo' }, 'foo=val; Expires=foo'],
+        [ 't108', 'foo', { value => 'val', Expires => $now + 24*60*60 }, sprintf('foo=val; Expires=%s', fmt($now + 24*60*60))],
     );
 
     for my $test (@tests) {
@@ -54,8 +54,8 @@ sub test_bake_time {
     for my $test (@tests) {
         printf("Running %s...\n", $test->[0]);
         my $now = time();
-        my $value = { value => 'val', expires => $test->[1] };
-        my $expected = sprintf('foo=val; expires=%s',
+        my $value = { value => 'val', Expires => $test->[1] };
+        my $expected = sprintf('foo=val; Expires=%s',
                                fmt(($test->[1] eq '0' ? 0 : $now) + $test->[2]));
 
         is( sc(bake_cookie('foo', $value)), sc($expected), $test->[0] );
