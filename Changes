@@ -1,3 +1,8 @@
+0.000005    2016-01-28
+            * Switch all standard cookie field names to
+              CamelCase, in accordance to RFC6265. Thanks to
+              @SysPete for the error report.
+
 0.000004    2016-01-27
             * Allow for '=' as part of a value. Thanks to
               @SysPete and @veryrusty for the error report
