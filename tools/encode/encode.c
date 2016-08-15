@@ -118,7 +118,7 @@ static void encode_table(const char* name)
             if (plain) {
                 printf("   0 ,");
             } else {
-                printf(" \"%02x\",", (unsigned int) x);
+                printf("\"%%%02x\",", (unsigned int) x);
             }
         }
         printf("  /* %1x: %3d ~ %3d */\n", r, m, m + NIBBLE - 1);

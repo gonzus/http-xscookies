@@ -63,9 +63,7 @@ Buffer* url_encode(Buffer* src, int length,
         }
 
         /* copy encoded character from our table */
-        tgt->data[t+0] = '%';
-        tgt->data[t+1] = v[0];
-        tgt->data[t+2] = v[1];
+        memcpy(tgt->data + t, v, 3);
 
         /* we used up 3 characters (%XY) in target
          * and 1 character from source */
