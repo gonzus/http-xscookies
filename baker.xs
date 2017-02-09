@@ -18,6 +18,7 @@
 #define COOKIE_NAME_EXPIRES    "Expires"
 #define COOKIE_NAME_SECURE     "Secure"
 #define COOKIE_NAME_HTTP_ONLY  "HttpOnly"
+#define COOKIE_NAME_SAME_SITE  "SameSite"
 
 /*
  * Given a name and a value, which can be a string or a hashref,
@@ -125,6 +126,8 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
             cookie_put_boolean(cookie, COOKIE_NAME_SECURE   , sizeof(COOKIE_NAME_SECURE)    - 1, 1);
         } else if (strcasecmp(key, COOKIE_NAME_HTTP_ONLY ) == 0) {
             cookie_put_boolean(cookie, COOKIE_NAME_HTTP_ONLY, sizeof(COOKIE_NAME_HTTP_ONLY) - 1, 1);
+        } else if (strcasecmp(key, COOKIE_NAME_SAME_SITE ) == 0) {
+            cookie_put_string (cookie, COOKIE_NAME_SAME_SITE  , sizeof(COOKIE_NAME_SAME_SITE)   - 1, cvalue, vlen, 0);
         }
     }
 }

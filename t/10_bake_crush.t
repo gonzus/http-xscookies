@@ -55,6 +55,16 @@ my @cookie_list = (
         },
         result => 'cookie.a=foo%3dbar',
     },
+    {
+        # SameSite
+        string => 'foo=bar; SameSite=strict',
+        name => 'foo',
+        fields => {
+            'value' => 'bar',
+            'SameSite' => 'strict',
+        },
+        result => 'foo=bar; SameSite=strict',
+    }
 );
 
 exit main();
