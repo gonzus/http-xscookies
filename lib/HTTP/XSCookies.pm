@@ -84,6 +84,8 @@ following formats:
 
 =item * HttpOnly: whether the cookie is HTTP only (a boolean, default is false).
 
+=item * SameSite: whether the cookie ought not to be sent along with cross-site requests (a string, either strict or lax, default is unset). See: L<https://tools.ietf.org/html/draft-west-first-party-cookies-07>.
+
 =back
 
 =head2 crush_cookie
