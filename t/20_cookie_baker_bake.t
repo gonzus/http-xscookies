@@ -9,6 +9,7 @@ exit main();
 sub main {
     test_bake_simple();
     test_bake_time();
+    test_url_encode();
     done_testing();
 
     return 0;
@@ -60,6 +61,12 @@ sub test_bake_time {
 
         is( sc(bake_cookie('foo', $value)), sc($expected), $test->[0] );
     }
+}
+
+sub test_url_encode {
+
+    is bake_cookie( 'test', "!\"\x{a3}\$%^*(*^%\$\x{a3}\":1" ),
+        'test=%21%22%a3%24%25%5e%2a%28%2a%5e%25%24%a3%22%3a1';
 }
 
 sub fmt {
