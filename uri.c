@@ -53,7 +53,13 @@ Buffer* url_encode(Buffer* src, int length,
     int s = src->pos;
     int t = tgt->pos;
     while (s < (src->pos + length)) {
-        char* v = uri_encode_tbl[(int)src->data[s]];
+        /* NOTE: masked the character array in case of platforms
+         * with >8 bit chars since our table only has sufficient
+         * characters for that many conversions.
+         * Results will potentially be wrong in that case,
+         * but at least we won't crash.
+         */
+        char* v = uri_encode_tbl[((unsigned char)src->data[s])&0xff];
 
         /* if current source character doesn't need to be encoded,
            just copy it to target*/
