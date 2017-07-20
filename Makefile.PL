@@ -13,6 +13,7 @@ WriteMakefile(
     TEST_REQUIRES  => {
         'Test::More'            => 0,
         'Data::Dumper'          => 0,
+        'Date::Parse'           => 0,
     },
     AUTHOR         => [
         'Gonzalo Diethelm (gonzus@cpan.org)',
