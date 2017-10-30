@@ -135,6 +135,7 @@ Buffer* cookie_get_pair(Buffer* cookie,
     int vcur = value->pos;
     int vend = 0;
     int state = 0;
+    int previous_state = 0;
     int current = 0;
 
     /* State machine starts in URI_STATE_START state and
@@ -144,6 +145,7 @@ Buffer* cookie_get_pair(Buffer* cookie,
         /* Switch to next state based on last character read
          * and current state. */
         current = cookie->data[cookie->pos];
+        previous_state = state;
         state = uri_state_tbl[current][state];
 
         switch (state) {
@@ -185,6 +187,14 @@ Buffer* cookie_get_pair(Buffer* cookie,
                         vend = value->pos;
                     }
                 }
+                break;
+
+            case URI_STATE_END:
+                if (previous_state == URI_STATE_NAME) {
+                    /* No value; purge field */
+                    vend = -1;
+                }
+                ++cookie->pos;
                 break;
 
             /* Any other state, just move to the next position. */

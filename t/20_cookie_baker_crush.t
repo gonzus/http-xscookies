@@ -31,6 +31,7 @@ sub test_crush_cookie {
         [ 't11', "Foo=Bar; $longkey=Bar; Bar=Baz", { Foo => 'Bar', $longkey => 'Bar', 'Bar'=>'Baz'}],
         [ 't12', '', {} ],
         [ 't13', undef, {} ],
+        [ 't14', 'Foo=Bar; HttpOnly; Yarr=1', { Foo => 'Bar', Yarr => 1 } ],
     );
 
     for my $test (@tests) {

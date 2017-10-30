@@ -183,6 +183,12 @@ static HV* parse_cookie(pTHX_ SV* pstr)
                 /* got an empty name => ran out of data */
                 break;
             }
+            if (value.pos == -1) {
+                /* no value was found, bail. */
+                buffer_reset(&name);
+                value.pos = 0;
+                continue;
+            }
 
             /* only first value seen for a name is kept */
             if (!hv_exists(hv, name.data, name.pos)) {
