@@ -12,7 +12,7 @@
 Buffer* cookie_put_string(Buffer* cookie,
                           const char* name, int nlen,
                           const char* value, int vlen,
-                          int encode);
+                          int enc_nam, int enc_val);
 Buffer* cookie_put_date(Buffer* cookie,
                         const char* name, int nlen,
                         const char* value);

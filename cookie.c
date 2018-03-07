@@ -15,7 +15,7 @@
 static Buffer* cookie_put_value(Buffer* cookie,
                                 const char* name, int nlen,
                                 const char* value, int vlen,
-                                int boolean, int encode)
+                                int boolean, int enc_nam, int enc_val)
 {
     Buffer dnam;
     Buffer dval;
@@ -28,20 +28,22 @@ static Buffer* cookie_put_value(Buffer* cookie,
             buffer_append(cookie, "; ", 2);
         }
 
-        if (!encode) {
+        if (!enc_nam) {
             buffer_append(cookie, dnam.data, dnam.size);
         } else {
             url_encode(&dnam, dnam.size, cookie);
         }
 
-        if (!boolean) {
-            buffer_append(cookie, "=", 1);
+        if (boolean) {
+            break;
+        }
 
-            if (!encode) {
-                buffer_append(cookie, dval.data, dval.size);
-            } else {
-                url_encode(&dval, dval.size, cookie);
-            }
+        buffer_append(cookie, "=", 1);
+
+        if (!enc_val) {
+            buffer_append(cookie, dval.data, dval.size);
+        } else {
+            url_encode(&dval, dval.size, cookie);
         }
     } while (0);
 
@@ -52,9 +54,9 @@ static Buffer* cookie_put_value(Buffer* cookie,
 Buffer* cookie_put_string(Buffer* cookie,
                           const char* name, int nlen,
                           const char* value, int vlen,
-                          int encode)
+                          int enc_nam, int enc_val)
 {
-    return cookie_put_value(cookie, name, nlen, value, vlen, 0, encode);
+    return cookie_put_value(cookie, name, nlen, value, vlen, 0, enc_nam, enc_val);
 }
 
 Buffer* cookie_put_date(Buffer* cookie,
@@ -63,13 +65,13 @@ Buffer* cookie_put_date(Buffer* cookie,
 {
     double date = date_compute(value);
     if (date < 0) {
-        return cookie_put_value(cookie, name, nlen, value, 0, 0, 0);
+        return cookie_put_value(cookie, name, nlen, value, 0, 0, 0, 0);
     }
 
     Buffer format;
     buffer_init(&format, 0);
     date_format(date, &format);
-    cookie_put_value(cookie, name, nlen, format.data, format.pos, 0, 0);
+    cookie_put_value(cookie, name, nlen, format.data, format.pos, 0, 0, 0);
     buffer_fini(&format);
 
     return cookie;
@@ -83,7 +85,7 @@ Buffer* cookie_put_integer(Buffer* cookie,
     int blen = 0;
     sprintf(buf, "%ld", value);
     blen = strlen(buf);
-    return cookie_put_value(cookie, name, nlen, buf, blen, 0, 0);
+    return cookie_put_value(cookie, name, nlen, buf, blen, 0, 0, 0);
 }
 
 Buffer* cookie_put_boolean(Buffer* cookie,
@@ -98,7 +100,7 @@ Buffer* cookie_put_boolean(Buffer* cookie,
     int blen = 0;
     strcpy(buf, "1");
     blen = strlen(buf);
-    return cookie_put_value(cookie, name, nlen, buf, blen, 1, 0);
+    return cookie_put_value(cookie, name, nlen, buf, blen, 1, 0, 0);
 }
 
 /*

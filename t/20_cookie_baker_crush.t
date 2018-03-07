@@ -49,6 +49,7 @@ sub test_crush_cookie {
         ],
         [ 't30', '', {} ],
         [ 't31', undef, {} ],
+        [ 't40', 'foo=bar%26baz; Secure', { foo => [qw/bar baz/], Secure => undef } ],
     );
 
     for my $test (@tests) {

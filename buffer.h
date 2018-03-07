@@ -91,7 +91,7 @@ typedef struct Buffer {
     do { \
         unsigned int l = (length); \
         buffer_zero(buffer); \
-        if (l == 0 && (src[0] != '\0')) { \
+        if ((l == 0) && (src != 0) && (src[0] != '\0')) { \
             l = strlen(src); \
         } \
         (buffer)->size = l; \
@@ -137,14 +137,17 @@ typedef struct Buffer {
 
 /*
  * Append a given char* (with indicated, optional length) to the buffer.
- * If length is 0, compute it using strlen(source);
+ * If length is 0, compute it using strlen(src);
  * If necessary, grow the buffer before appending.
  */
-#define buffer_append(buffer, source, length) \
+#define buffer_append(buffer, src, length) \
     do { \
-        unsigned int l = (length) ? (length) : strlen(source); \
+        unsigned int l = (length); \
+        if ((l == 0) && (src != 0) && (src[0] != '\0')) { \
+            l = strlen(src); \
+        } \
         buffer_ensure_unused(buffer, l); \
-        memcpy((buffer)->data + (buffer)->pos, source, l); \
+        memcpy((buffer)->data + (buffer)->pos, src, l); \
         (buffer)->pos += l; \
     } while (0)
 

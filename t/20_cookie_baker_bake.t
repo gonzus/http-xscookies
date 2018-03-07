@@ -41,10 +41,12 @@ sub test_bake_simple {
             },
             sprintf('foo=val; Expires=%s', format_time($now + 24*60*60)),
         ],
+        [ 't140', 'foo', { value => [qw/bar baz/], Secure => 1 }, 'foo=bar%26baz; Secure' ],
     );
 
     for my $test (@tests) {
-        is( cookie_to_string(bake_cookie($test->[1], $test->[2])),
+        my $baked = bake_cookie($test->[1], $test->[2]);
+        is( cookie_to_string($baked),
             cookie_to_string($test->[3]),
             sprintf('%s - baked simple cookie', $test->[0] ));
     }
