@@ -175,15 +175,17 @@ static HV* parse_cookie(pTHX_ SV* pstr)
         buffer_init(&value, 0);
 
         while (1) {
-            cookie_get_pair(&cookie, &name, &value);
+            int equals = cookie_get_pair(&cookie, &name, &value);
+
+            /* got an empty name => ran out of data */
             if (name.pos == 0) {
-                /* got an empty name => ran out of data */
                 break;
             }
 
             /* only first value seen for a name is kept */
             if (!hv_exists(hv, name.data, name.pos)) {
-                SV* pval = newSVpv(value.data, value.pos);
+                /* didn't see an equal sign => name with no value */
+                SV* pval = equals ? newSVpv(value.data, value.pos) : &PL_sv_undef;
                 hv_store(hv, name.data, name.pos, pval, 0);
             }
 

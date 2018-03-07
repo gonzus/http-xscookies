@@ -128,14 +128,15 @@ Buffer* cookie_put_boolean(Buffer* cookie,
  * of URL encoding and decoding) was generated with a C program,
  * which can be found in tools/encode/encode.
  */
-Buffer* cookie_get_pair(Buffer* cookie,
-                        Buffer* name, Buffer* value)
+int cookie_get_pair(Buffer* cookie,
+                    Buffer* name, Buffer* value)
 {
     int ncur = name->pos;
     int vcur = value->pos;
     int vend = 0;
     int state = 0;
     int current = 0;
+    int equals = 0;
 
     /* State machine starts in URI_STATE_START state and
      * will loop until we enter any state that is
@@ -163,6 +164,11 @@ Buffer* cookie_get_pair(Buffer* cookie,
                     name->data[name->pos++] = current;
                     ++cookie->pos;
                 }
+                break;
+
+            case URI_STATE_EQUALS:
+                equals = 1;
+                ++cookie->pos;
                 break;
 
             /* If we are reading the value part, add the current
@@ -213,5 +219,5 @@ Buffer* cookie_get_pair(Buffer* cookie,
     /* Terminate both output buffers and return. */
     buffer_terminate(name);
     buffer_terminate(value);
-    return cookie;
+    return equals;
 }

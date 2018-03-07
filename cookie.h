@@ -23,7 +23,7 @@ Buffer* cookie_put_boolean(Buffer* cookie,
                           const char* name, int nlen,
                           int value);
 
-Buffer* cookie_get_pair(Buffer* cookie,
-                        Buffer* name, Buffer* value);
+int cookie_get_pair(Buffer* cookie,
+                    Buffer* name, Buffer* value);
 
 #endif
