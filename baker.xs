@@ -113,9 +113,6 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
         if (!SvOK(val)) {
             continue;
         }
-        if (SvIOK(val) && !SvIV(val)) {
-            continue;
-        }
 
         cvalue = SvPV_const(val, vlen);
         if (cvalue == 0) {
@@ -124,7 +121,7 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
 
         /* TODO: should we skip if cvalue is invalid / empty? */
 
-        if      (strcasecmp(key, COOKIE_NAME_DOMAIN) == 0) {
+        if        (strcasecmp(key, COOKIE_NAME_DOMAIN) == 0) {
             cookie_put_string (cookie, COOKIE_NAME_DOMAIN   , sizeof(COOKIE_NAME_DOMAIN)    - 1, cvalue, vlen, 0);
         } else if (strcasecmp(key, COOKIE_NAME_PATH      ) == 0) {
             cookie_put_string (cookie, COOKIE_NAME_PATH     , sizeof(COOKIE_NAME_PATH)      - 1, cvalue, vlen, 0);
@@ -133,9 +130,9 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
         } else if (strcasecmp(key, COOKIE_NAME_EXPIRES   ) == 0) {
             cookie_put_date (cookie, COOKIE_NAME_EXPIRES    , sizeof(COOKIE_NAME_EXPIRES)   - 1, cvalue);
         } else if (strcasecmp(key, COOKIE_NAME_SECURE    ) == 0) {
-            cookie_put_boolean(cookie, COOKIE_NAME_SECURE   , sizeof(COOKIE_NAME_SECURE)    - 1, 1);
+            cookie_put_boolean(cookie, COOKIE_NAME_SECURE   , sizeof(COOKIE_NAME_SECURE)    - 1, SvTRUE(val));
         } else if (strcasecmp(key, COOKIE_NAME_HTTP_ONLY ) == 0) {
-            cookie_put_boolean(cookie, COOKIE_NAME_HTTP_ONLY, sizeof(COOKIE_NAME_HTTP_ONLY) - 1, 1);
+            cookie_put_boolean(cookie, COOKIE_NAME_HTTP_ONLY, sizeof(COOKIE_NAME_HTTP_ONLY) - 1, SvTRUE(val));
         } else if (strcasecmp(key, COOKIE_NAME_SAME_SITE ) == 0) {
             cookie_put_string (cookie, COOKIE_NAME_SAME_SITE  , sizeof(COOKIE_NAME_SAME_SITE)   - 1, cvalue, vlen, 0);
         }
