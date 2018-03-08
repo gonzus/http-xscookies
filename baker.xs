@@ -20,6 +20,21 @@
 
 
 /*
+ * Some standard field names have no value associated:
+ *
+ *   Secure
+ *   HttpOnly
+ *
+ * Macro TREATMENT_FOR_NAME_WITH_NO_VALUE controls what we do:
+ *
+ * 0: ignore these names, as if they had not been specified
+ * 1: treat these names as having a value of undef, but only for the standard
+ *    names listed above
+ * 2: always treat these names as having a value of undef
+ */
+#define TREATMENT_FOR_NAME_WITH_NO_VALUE 2
+
+/*
  * Possible field names in a cookie.
  */
 #define COOKIE_NAME_VALUE      "value"
@@ -247,9 +262,21 @@ static HV* parse_cookie(pTHX_ SV* pstr)
             }
 
             if (!equals) {
-                /* didn't see an equal sign => name with no value, store an undef */
+                /* didn't see an equal sign => name with no value */
+#if TREATMENT_FOR_NAME_WITH_NO_VALUE == 0
+                /* skip name */
+#elif TREATMENT_FOR_NAME_WITH_NO_VALUE == 1
+                /* TODO: only for known names */
+                /* store a name => undef pair*/
                 SV* nil = newSV(0);
                 hv_store(hv, name.data, name.pos, nil, 0);
+#elif TREATMENT_FOR_NAME_WITH_NO_VALUE == 2
+                /* store a name => undef pair*/
+                SV* nil = newSV(0);
+                hv_store(hv, name.data, name.pos, nil, 0);
+#else
+                /* huh? */
+#endif
                 continue;
             }
 
