@@ -20,21 +20,6 @@
 
 
 /*
- * Some standard field names have no value associated:
- *
- *   Secure
- *   HttpOnly
- *
- * Macro TREATMENT_FOR_NAME_WITH_NO_VALUE controls what we do:
- *
- * 0: ignore these names, as if they had not been specified
- * 1: treat these names as having a value of undef, but only for the standard
- *    names listed above
- * 2: always treat these names as having a value of undef
- */
-#define TREATMENT_FOR_NAME_WITH_NO_VALUE 2
-
-/*
  * Possible field names in a cookie.
  */
 #define COOKIE_NAME_VALUE      "value"
@@ -227,8 +212,18 @@ static int search_char(char c, const Buffer* buf, int start)
 /*
  * Given a string, parse it as a cookie into its component values
  * and return a hashref with them.
+ *
+ * Some standard field names have no value associated:
+ *
+ *   Secure
+ *   HttpOnly
+ *
+ * Parameter allow_no_value controls what we do:
+ *
+ * =0: ignore these names, as if they had not been specified
+ * >0: always treat these names as having a value of undef
  */
-static HV* parse_cookie(pTHX_ SV* pstr)
+static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
 {
     /* we will always return a hashref, maybe empty */
     HV* hv = newHV();
@@ -279,20 +274,11 @@ static HV* parse_cookie(pTHX_ SV* pstr)
 
             if (!equals) {
                 /* didn't see an equal sign => name with no value */
-#if TREATMENT_FOR_NAME_WITH_NO_VALUE == 0
-                /* skip name */
-#elif TREATMENT_FOR_NAME_WITH_NO_VALUE == 1
-                /* TODO: only for known names */
-                /* store a name => undef pair*/
-                SV* nil = newSV(0);
-                hv_store(hv, name.data, name.wpos, nil, 0);
-#elif TREATMENT_FOR_NAME_WITH_NO_VALUE == 2
-                /* store a name => undef pair*/
-                SV* nil = newSV(0);
-                hv_store(hv, name.data, name.wpos, nil, 0);
-#else
-                /* huh? */
-#endif
+                if (allow_no_value) {
+                    /* store a name => undef pair*/
+                    SV* nil = newSV(0);
+                    hv_store(hv, name.data, name.wpos, nil, 0);
+                }
                 continue;
             }
 
@@ -352,7 +338,12 @@ bake_cookie(SV* name, SV* value)
   OUTPUT: RETVAL
 
 SV*
-crush_cookie(SV* str)
+crush_cookie(SV* str, ...)
+  PREINIT:
+    IV allow_no_value = 0;
   CODE:
-    RETVAL = newRV_noinc((SV *) parse_cookie(aTHX_ str));
+    if (items > 1) {
+        allow_no_value = SvIV(ST(1));
+    }
+    RETVAL = newRV_noinc((SV *) parse_cookie(aTHX_ str, allow_no_value));
   OUTPUT: RETVAL
