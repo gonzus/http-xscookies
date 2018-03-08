@@ -7,13 +7,19 @@
 /* length of a string like "Sun, 08-Jan-2006 13:56:17 GMT"]" */
 #define DATE_FORMAT_LEN 29
 
-double date_compute(const char *date)
+double date_compute(const char *date, int len)
 {
+    if (len < 0) {
+        len = strlen(date);
+    }
+    if (len <= 0) {
+        return -1;
+    }
     /* special case when date is the string "now" */
-    if (date[0] == 'n' &&
+    if (len == 3 &&
+        date[0] == 'n' &&
         date[1] == 'o' &&
-        date[2] == 'w' &&
-        date[3] == '\0') {
+        date[2] == 'w') {
         return time(0);
     }
 
@@ -24,7 +30,7 @@ double date_compute(const char *date)
     double decimals = 1;
     char term = 's';
     int e = 0;
-    for (; date[e] != '\0'; ++e) {
+    for (; e < len; ++e) {
         char c = date[e];
         if (isspace(c)) {
             if (state > 0) {
@@ -165,7 +171,7 @@ Buffer* date_format(double date, Buffer* format)
 #endif
 
     buffer_ensure_unused(format, DATE_FORMAT_LEN);
-    sprintf(format->data,
+    sprintf(format->data + format->wpos,
             "%3s, %02d-%3s-%04d %02d:%02d:%02d %3s",
             Day[gmt.tm_wday % 7],
             gmt.tm_mday,
@@ -175,6 +181,6 @@ Buffer* date_format(double date, Buffer* format)
             gmt.tm_min,
             gmt.tm_sec,
             "GMT");
-    format->pos = DATE_FORMAT_LEN;
+    format->wpos += DATE_FORMAT_LEN;
     return format;
 }

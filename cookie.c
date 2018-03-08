@@ -24,30 +24,29 @@ static Buffer* cookie_put_value(Buffer* cookie,
 
     /* output each part into the cookie */
     do {
-        if (cookie->pos > 0) {
-            buffer_append(cookie, "; ", 2);
+        if (cookie->wpos > 0) {
+            buffer_append_str(cookie, "; ", 2);
         }
 
         if (!enc_nam) {
-            buffer_append(cookie, dnam.data, dnam.size);
+            buffer_append_buf(cookie, &dnam);
         } else {
-            url_encode(&dnam, dnam.size, cookie);
+            url_encode(&dnam, cookie);
         }
 
         if (boolean) {
             break;
         }
 
-        buffer_append(cookie, "=", 1);
+        buffer_append_str(cookie, "=", 1);
 
         if (!enc_val) {
-            buffer_append(cookie, dval.data, dval.size);
+            buffer_append_buf(cookie, &dval);
         } else {
-            url_encode(&dval, dval.size, cookie);
+            url_encode(&dval, cookie);
         }
     } while (0);
 
-    buffer_terminate(cookie);
     return cookie;
 }
 
@@ -61,17 +60,17 @@ Buffer* cookie_put_string(Buffer* cookie,
 
 Buffer* cookie_put_date(Buffer* cookie,
                         const char* name, int nlen,
-                        const char* value)
+                        const char* value, int vlen)
 {
-    double date = date_compute(value);
+    double date = date_compute(value, vlen);
     if (date < 0) {
-        return cookie_put_value(cookie, name, nlen, value, 0, 0, 0, 0);
+        return cookie_put_value(cookie, name, nlen, value, vlen, 0, 0, 0);
     }
 
     Buffer format;
     buffer_init(&format, 0);
     date_format(date, &format);
-    cookie_put_value(cookie, name, nlen, format.data, format.pos, 0, 0, 0);
+    cookie_put_value(cookie, name, nlen, format.data, format.wpos, 0, 0, 0);
     buffer_fini(&format);
 
     return cookie;
@@ -133,8 +132,8 @@ Buffer* cookie_put_boolean(Buffer* cookie,
 int cookie_get_pair(Buffer* cookie,
                     Buffer* name, Buffer* value)
 {
-    int ncur = name->pos;
-    int vcur = value->pos;
+    int norig = name->wpos;
+    int vorig = value->wpos;
     int vend = 0;
     int state = 0;
     int current = 0;
@@ -146,7 +145,7 @@ int cookie_get_pair(Buffer* cookie,
     for (state = URI_STATE_START; state < URI_STATE_TERMINATE; ) {
         /* Switch to next state based on last character read
          * and current state. */
-        current = cookie->data[cookie->pos];
+        current = cookie->data[cookie->rpos];
         state = uri_state_tbl[current][state];
 
         switch (state) {
@@ -155,22 +154,22 @@ int cookie_get_pair(Buffer* cookie,
             case URI_STATE_NAME:
                 buffer_ensure_unused(name, 1);
                 if (current == '%' &&
-                    isxdigit(cookie->data[cookie->pos+1]) &&
-                    isxdigit(cookie->data[cookie->pos+2])) {
+                    isxdigit(cookie->data[cookie->rpos+1]) &&
+                    isxdigit(cookie->data[cookie->rpos+2])) {
                     /* put a byte together from the next two hex digits */
-                    name->data[name->pos++] = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->pos+1]],
-                                                        uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
-                    cookie->pos += 3;
+                    name->data[name->wpos++] = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->rpos+1]],
+                                                         uri_decode_tbl[(int)cookie->data[cookie->rpos+2]]);
+                    cookie->rpos += 3;
                 } else {
                     /* just copy current character */
-                    name->data[name->pos++] = current;
-                    ++cookie->pos;
+                    name->data[name->wpos++] = current;
+                    ++cookie->rpos;
                 }
                 break;
 
             case URI_STATE_EQUALS:
                 equals = 1;
-                ++cookie->pos;
+                ++cookie->rpos;
                 break;
 
             /* If we are reading the value part, add the current
@@ -178,26 +177,26 @@ int cookie_get_pair(Buffer* cookie,
             case URI_STATE_VALUE:
                 buffer_ensure_unused(value, 1);
                 if (current == '%' &&
-                    isxdigit(cookie->data[cookie->pos+1]) &&
-                    isxdigit(cookie->data[cookie->pos+2])) {
+                    isxdigit(cookie->data[cookie->rpos+1]) &&
+                    isxdigit(cookie->data[cookie->rpos+2])) {
                     /* put a byte together from the next two hex digits */
-                    value->data[value->pos++] = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->pos+1]],
-                                                          uri_decode_tbl[(int)cookie->data[cookie->pos+2]]);
-                    cookie->pos += 3;
-                    vend = value->pos;
+                    value->data[value->wpos++] = MAKE_BYTE(uri_decode_tbl[(int)cookie->data[cookie->rpos+1]],
+                                                           uri_decode_tbl[(int)cookie->data[cookie->rpos+2]]);
+                    cookie->rpos += 3;
+                    vend = value->wpos;
                 } else {
                     /* just copy current character */
-                    value->data[value->pos++] = current;
-                    ++cookie->pos;
+                    value->data[value->wpos++] = current;
+                    ++cookie->rpos;
                     if (!isspace(current)) {
-                        vend = value->pos;
+                        vend = value->wpos;
                     }
                 }
                 break;
 
             /* Any other state, just move to the next position. */
             default:
-                ++cookie->pos;
+                ++cookie->rpos;
                 break;
         }
     }
@@ -205,21 +204,18 @@ int cookie_get_pair(Buffer* cookie,
     /* If last character seen was EOS, we have already incremented
      * the buffer position once too many; correct that. */
     if (current == '\0') {
-        --cookie->pos;
+        --cookie->rpos;
     }
     /* If we didn't end in URI_STATE_END, reset buffers. */
     if (state != URI_STATE_END) {
-        name->pos = ncur;
-        value->pos = vcur;
+        name->wpos = norig;
+        value->wpos = vorig;
     } else {
         /* Maybe correct end position for value. */
         if (vend) {
-            value->pos = vend;
+            value->wpos = vend;
         }
     }
 
-    /* Terminate both output buffers and return. */
-    buffer_terminate(name);
-    buffer_terminate(value);
     return equals;
 }

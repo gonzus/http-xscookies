@@ -54,6 +54,7 @@ static void get_encoded_value(pTHX_ SV* val, Buffer* encoded, int encode)
     Buffer unencoded;
     int destroy = 0;
 
+    buffer_reset(encoded);
     if (SvROK(val)) {
         buffer_init(&unencoded , 0);
         destroy = 1;
@@ -71,27 +72,23 @@ static void get_encoded_value(pTHX_ SV* val, Buffer* encoded, int encode)
                 }
                 cvalue = SvPV_const(*elem, vlen);
                 if (j > 0) {
-                    buffer_append(&unencoded, "&", 1);
+                    buffer_append_str(&unencoded, "&", 1);
                 }
-                buffer_append(&unencoded, cvalue, vlen);
+                buffer_append_str(&unencoded, cvalue, vlen);
             }
-            vlen = unencoded.pos;
         }
     } else {
         cvalue = SvPV_const(val, vlen);
         buffer_wrap(&unencoded, cvalue, vlen);
     }
-    buffer_reset(encoded);
     if (encode) {
-        buffer_rewind(&unencoded);
-        url_encode(&unencoded, vlen, encoded);
+        url_encode(&unencoded, encoded);
     } else {
-        buffer_append(encoded, unencoded.data, vlen);
+        buffer_append_buf(encoded, &unencoded);
     }
     if (destroy) {
         buffer_fini(&unencoded);
     }
-    buffer_terminate(encoded);
 }
 
 /*
@@ -150,7 +147,7 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
 
     /* first store cookie name and value, URL-encoding both */
     get_encoded_value(aTHX_ *nval, &encoded, 1);
-    cookie_put_string(cookie, cname, nlen, encoded.data, encoded.pos, 1, 0);
+    cookie_put_string(cookie, cname, nlen, encoded.data, encoded.wpos, 1, 0);
 
     /* now iterate over all other values */
     hv_iterinit(values);
@@ -180,10 +177,9 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
             continue;
         }
 
-        buffer_reset(&encoded);
         get_encoded_value(aTHX_ val, &encoded, 0);
         cvalue = encoded.data;
-        vlen = encoded.pos;
+        vlen = encoded.wpos;
         if (cvalue == 0) {
             continue;
         }
@@ -197,7 +193,7 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
         } else if (strcasecmp(key, COOKIE_NAME_MAX_AGE   ) == 0) {
             cookie_put_string (cookie, COOKIE_NAME_MAX_AGE  , sizeof(COOKIE_NAME_MAX_AGE)   - 1, cvalue, vlen, 0, 0);
         } else if (strcasecmp(key, COOKIE_NAME_EXPIRES   ) == 0) {
-            cookie_put_date (cookie, COOKIE_NAME_EXPIRES    , sizeof(COOKIE_NAME_EXPIRES)   - 1, cvalue);
+            cookie_put_date (cookie, COOKIE_NAME_EXPIRES    , sizeof(COOKIE_NAME_EXPIRES)   - 1, cvalue, vlen);
         } else if (strcasecmp(key, COOKIE_NAME_SECURE    ) == 0) {
             cookie_put_boolean(cookie, COOKIE_NAME_SECURE   , sizeof(COOKIE_NAME_SECURE)    - 1, SvTRUE(val));
         } else if (strcasecmp(key, COOKIE_NAME_HTTP_ONLY ) == 0) {
@@ -252,12 +248,12 @@ static HV* parse_cookie(pTHX_ SV* pstr)
             int equals = cookie_get_pair(&cookie, &name, &value);
 
             /* got an empty name => ran out of data */
-            if (name.pos == 0) {
+            if (name.wpos == 0) {
                 break;
             }
 
             /* only first value seen for a name is kept */
-            if (hv_exists(hv, name.data, name.pos)) {
+            if (hv_exists(hv, name.data, name.wpos)) {
                 continue;
             }
 
@@ -269,38 +265,57 @@ static HV* parse_cookie(pTHX_ SV* pstr)
                 /* TODO: only for known names */
                 /* store a name => undef pair*/
                 SV* nil = newSV(0);
-                hv_store(hv, name.data, name.pos, nil, 0);
+                hv_store(hv, name.data, name.wpos, nil, 0);
 #elif TREATMENT_FOR_NAME_WITH_NO_VALUE == 2
                 /* store a name => undef pair*/
                 SV* nil = newSV(0);
-                hv_store(hv, name.data, name.pos, nil, 0);
+                hv_store(hv, name.data, name.wpos, nil, 0);
 #else
                 /* huh? */
 #endif
                 continue;
             }
 
-            buffer_terminate(&value);
-            char* word = strchr(value.data, '&');
-            if (!word) {
+            int pos = -1;
+            for (int j = value.rpos; j < value.wpos; ++j) {
+                if (value.data[j] == '&') {
+                    pos = j;
+                    break;
+                }
+            }
+            if (pos < 0) {
                 /* no & chars? simple string */
-                SV* str = newSVpv(value.data, value.pos);
-                hv_store(hv, name.data, name.pos, str, 0);
+                SV* str = newSVpvn(value.data, value.wpos);
+                hv_store(hv, name.data, name.wpos, str, 0);
                 continue;
             }
 
             /* & chars => create arrayref */
             AV* array = newAV();
             int key = 0;
-            for (word = strtok(value.data, "&"); word; word = strtok(0, "&")) {
-                SV* str = sv_2mortal(newSVpv(word, strlen(word)));
+            int ini = 0;
+            int end = pos;
+            while (1) {
+                if (ini >= value.wpos) {
+                    break;
+                }
+                SV* str = sv_2mortal(newSVpvn(value.data + ini, end - ini));
                 if (av_store(array, key, str)) {
                     SvREFCNT_inc(str);
                 }
                 ++key;
+                ini = ++end;
+                pos = -1;
+                for (int j = end; j < value.wpos; ++j) {
+                    if (value.data[j] == '&') {
+                        pos = j;
+                        break;
+                    }
+                }
+                end = pos < 0 ? value.wpos : pos;
             }
             SV* ref = newRV_noinc((SV*) array);
-            hv_store(hv, name.data, name.pos, ref, 0);
+            hv_store(hv, name.data, name.wpos, ref, 0);
         }
 
         /* release memory for name / value buffers */
@@ -324,7 +339,7 @@ bake_cookie(SV* name, SV* value)
   CODE:
     buffer_init(&cookie, 0);
     build_cookie(aTHX_ name, value, &cookie);
-    RETVAL = newSVpv(cookie.data, cookie.pos);
+    RETVAL = newSVpvn(cookie.data, cookie.wpos);
     buffer_fini(&cookie);
   OUTPUT: RETVAL
 
