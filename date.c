@@ -9,6 +9,16 @@
 
 double date_compute(const char *date, int len)
 {
+    int state = 0;
+    int negative = -1;
+    int part[2] = {0,0};
+    int p = 0;
+    double decimals = 1;
+    char term = 's';
+    int e = 0;
+    double offset = 0.0;
+    time_t base = 0;
+
     if (len < 0) {
         len = strlen(date);
     }
@@ -23,13 +33,6 @@ double date_compute(const char *date, int len)
         return time(0);
     }
 
-    int state = 0;
-    int negative = -1;
-    int part[2] = {0,0};
-    int p = 0;
-    double decimals = 1;
-    char term = 's';
-    int e = 0;
     for (; e < len; ++e) {
         char c = date[e];
         if (isspace(c)) {
@@ -88,7 +91,7 @@ double date_compute(const char *date, int len)
         return -1;
     }
 
-    double offset = (double) part[0];
+    offset = (double) part[0];
 
     /* digits only => epoch */
     if (state == 2 && negative < 0) {
@@ -124,7 +127,7 @@ double date_compute(const char *date, int len)
         default:
             break;
     }
-    time_t base = time(0);
+    base = time(0);
     /* printf("time now %lu\n", (unsigned long) base); */
     return base + offset;
 }

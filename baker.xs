@@ -36,8 +36,9 @@ static void get_encoded_value(pTHX_ SV* value, Buffer* encoded, int encode)
     SV* ref = 0;
     const char* vstr = 0;
     STRLEN vlen = 0;
-    Buffer unencoded;
+    int j = 0;
 
+    Buffer unencoded;
     buffer_reset(encoded);
 
     /* common case: just a string */
@@ -55,11 +56,11 @@ static void get_encoded_value(pTHX_ SV* value, Buffer* encoded, int encode)
     /* less common case: a reference => multiple values */
     ref = SvRV(value);
     if (SvTYPE(ref) == SVt_PVAV) {
-        buffer_init(&unencoded , 0);
         AV* values = (AV*) ref;
-        int top = av_top_index(values);
+        int top = av_tindex(values);
         int count = 0;
-        for (int j = 0; j <= top; ++j) {
+        buffer_init(&unencoded , 0);
+        for (j = 0; j <= top; ++j) {
             SV** elem = av_fetch(values, j, 0);
             if (!SvOK(*elem) || !SvPOK(*elem)) {
                 continue;
@@ -200,7 +201,8 @@ static void build_cookie(pTHX_ SV* pname, SV* pvalue, Buffer* cookie)
 static int search_char(char c, const Buffer* buf, int start)
 {
     int pos = -1;
-    for (int j = start; j < buf->wpos; ++j) {
+    unsigned int j = 0;
+    for (j = start; j < buf->wpos; ++j) {
         if (buf->data[j] == c) {
             pos = j;
             break;
@@ -255,12 +257,20 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
         buffer_init(&value, 0);
 
         while (1) {
+            int equals = 0;
+            int pos = 0;
+            AV* array = 0;
+            int key = 0;
+            unsigned int ini = 0;
+            unsigned int end = 0;
+            SV* ref = 0;
+
             /* reset buffers for name / value, avoiding memory reallocation */
             buffer_reset(&name);
             buffer_reset(&value);
 
             /* get the pair name=value, return whether we saw an equals sign */
-            int equals = cookie_get_pair(&cookie, &name, &value);
+            equals = cookie_get_pair(&cookie, &name, &value);
 
             /* got an empty name => ran out of data */
             if (name.wpos == 0) {
@@ -282,7 +292,7 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
                 continue;
             }
 
-            int pos = search_char('&', &value, value.rpos);
+            pos = search_char('&', &value, value.rpos);
             if (pos < 0) {
                 /* no & chars? simple string */
                 SV* str = newSVpvn(value.data, value.wpos);
@@ -291,15 +301,14 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
             }
 
             /* & chars => create arrayref */
-            AV* array = newAV();
-            int key = 0;
-            int ini = 0;
-            int end = pos;
+            array = newAV();
+            end = pos;
             while (1) {
+                SV* str = 0;
                 if (ini >= value.wpos) {
                     break;
                 }
-                SV* str = sv_2mortal(newSVpvn(value.data + ini, end - ini));
+                str = sv_2mortal(newSVpvn(value.data + ini, end - ini));
                 if (av_store(array, key, str)) {
                     SvREFCNT_inc(str);
                 }
@@ -308,7 +317,7 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
                 pos = search_char('&', &value, end);
                 end = pos < 0 ? value.wpos : pos;
             }
-            SV* ref = newRV_noinc((SV*) array);
+            ref = newRV_noinc((SV*) array);
             hv_store(hv, name.data, name.wpos, ref, 0);
         }
 

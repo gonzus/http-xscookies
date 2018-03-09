@@ -17,11 +17,12 @@
 
 Buffer* url_decode(Buffer* src, Buffer* tgt)
 {
+    unsigned int s = src->rpos;
+    unsigned int t = tgt->wpos;
+
     /* check and maybe increase space in target */
     buffer_ensure_unused(tgt, buffer_used(src));
 
-    int s = src->rpos;
-    int t = tgt->wpos;
     while (s < src->wpos) {
         if (src->data[s] == '%' &&
             isxdigit(src->data[s+1]) &&
@@ -44,10 +45,12 @@ Buffer* url_decode(Buffer* src, Buffer* tgt)
 
 Buffer* url_encode(Buffer* src, Buffer* tgt)
 {
+    unsigned int s = src->rpos;
+    unsigned int t = tgt->wpos;
+
     /* check and maybe increase space in target */
     buffer_ensure_unused(tgt, 3 * buffer_used(src));
-    int s = src->rpos;
-    int t = tgt->wpos;
+
     while (s < src->wpos) {
         char* v = uri_encode_tbl[CAST_INDEX(src->data[s])];
 
