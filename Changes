@@ -1,3 +1,10 @@
+0.000018    2018-03-09
+            * Try to sidestep a compilation failure for older Perls
+              by switching from av_top_index to av_tindex.
+            * Change the code to avoid, as far as I can see,
+              anything that might trigger an older C compiler.
+              Because it has only been 25 years since C90...
+
 0.000017    2018-03-07
             * Optionally accept names without values, by adding
               an optional parameter to crush_cookie that allows
