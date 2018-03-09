@@ -54,8 +54,13 @@ using XS, therefore improving the speed of a pure Perl implementation.
 
 Generate a cookie string with proper encoding. The first argument is
 the cookie name; the second argument can be a string (the cookie value)
-or a hashref with a set of key-value pairs.  These are the keys that
-are recognized:
+or a hashref with a set of key-value pairs.
+
+The value for any of these attributes can be an arrayref (multi-valued cookie);
+if this is the case, the elements of the array will be concatenated with an '&'
+character and the whole string will be URL-encoded.
+
+These are the keys that are recognized:
 
 =over 4
 
@@ -90,10 +95,19 @@ following formats:
 
 =head2 crush_cookie
 
-    my $values = crush_cookie($cookie);
+    my $values = crush_cookie( $cookie [, $allow_no_value] );
 
 Parse a (properly encoded) cookie string into a hashref with the
 individual values.
+
+If the second parameter is non-zero, the parsing will allow for attributes
+without a value, and set those to have a value of undef in the returned hashref
+(so that they can easily be differentiated from an attribute with an explicit
+value).  The default is 0.
+
+If any of the (URL-decoded) values contains an '&' character, that value is
+interpreted as multiple values, so an arrayref of each separate component is
+returned.
 
 =head1 SEE ALSO
 
