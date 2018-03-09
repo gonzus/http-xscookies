@@ -36,8 +36,8 @@ Version 0.000018
 
 =head1 DESCRIPTION
 
-This module implements cookie creation (baking) and parsing (crushing)
-using XS, therefore improving the speed of a pure Perl implementation.
+This module implements cookie creation (baking) and parsing (crushing) using
+XS, therefore improving the speed of a pure Perl implementation.
 
 =head1 METHODS/ATTRIBUTES
 
@@ -52,9 +52,9 @@ using XS, therefore improving the speed of a pure Perl implementation.
         expires => '+11h'
     });
 
-Generate a cookie string with proper encoding. The first argument is
-the cookie name; the second argument can be a string (the cookie value)
-or a hashref with a set of key-value pairs.
+Generate a cookie string with proper encoding. The first argument is the cookie
+name; the second argument can be a string (the cookie value) or a hashref with
+a set of key-value pairs.
 
 The value for any of these attributes can be an arrayref (multi-valued cookie);
 if this is the case, the elements of the array will be concatenated with an '&'
@@ -87,9 +87,12 @@ following formats:
 
 =item * Secure: whether the cookie is secure (a boolean, default is false).
 
-=item * HttpOnly: whether the cookie is HTTP only (a boolean, default is false).
+=item * HttpOnly: whether the cookie is HTTP only (a boolean, default is
+false).
 
-=item * SameSite: whether the cookie ought not to be sent along with cross-site requests (a string, either strict or lax, default is unset). See: L<https://tools.ietf.org/html/draft-west-first-party-cookies-07>.
+=item * SameSite: whether the cookie ought not to be sent along with cross-site
+requests (a string, either strict or lax, default is unset). See:
+L<https://tools.ietf.org/html/draft-west-first-party-cookies-07>.
 
 =back
 
@@ -97,8 +100,8 @@ following formats:
 
     my $values = crush_cookie( $cookie [, $allow_no_value] );
 
-Parse a (properly encoded) cookie string into a hashref with the
-individual values.
+Parse a (properly encoded) cookie string into a hashref with the individual
+values.
 
 If the second parameter is non-zero, the parsing will allow for attributes
 without a value, and set those to have a value of undef in the returned hashref
@@ -117,8 +120,8 @@ L<Cookie::Baker>.
 
 Copyright (C) Gonzalo Diethelm.
 
-This library is free software; you can redistribute it
-and/or modify it under the terms of the MIT license.
+This library is free software; you can redistribute it and/or modify it under
+the terms of the MIT license.
 
 =head1 AUTHOR
 
