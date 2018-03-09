@@ -1,3 +1,7 @@
+0.000019    2018-03-09
+            * Upgrade Devel::PPPort to version 3.36 to solve
+              compilation errors on older versions of Perl.
+
 0.000018    2018-03-09
             * Try to sidestep a compilation failure for older Perls
               by switching from av_top_index to av_tindex.
