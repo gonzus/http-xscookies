@@ -1,3 +1,6 @@
+0.000021    2018-03-11
+            * Stop using defined-or, breals oldeer perls.
+
 0.000020    2018-03-10
             * Since upgrading Devel::PPPort did not fix the errors,
               switch from using av_top_index / av_tindex to using
