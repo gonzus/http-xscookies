@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "gmem.h"
 
+#define UNUSED_ARG(x) (void) (x)
+
 int gmem_unused = 0;
 
 #if defined(GMEM_CHECK) && GMEM_CHECK >= 1
@@ -73,6 +75,9 @@ int gmem_new_called(const char* file,
 #if defined(GMEM_CHECK) && GMEM_CHECK >= 2
   fprintf(stderr, "=== MEM NEW %s %d %p %d %ld %ld ===\n",
           file, line, var, count, size, total);
+#else
+  UNUSED_ARG(file);
+  UNUSED_ARG(line);
 #endif
 
   gmem_new += total;
@@ -107,6 +112,9 @@ int gmem_del_called(const char* file,
 #if defined(GMEM_CHECK) && GMEM_CHECK >= 2
   fprintf(stderr, "=== MEM DEL %s %d %p %d %ld %ld ===\n",
           file, line, var, count, size, total);
+#else
+  UNUSED_ARG(file);
+  UNUSED_ARG(line);
 #endif
 
   gmem_del += total;
