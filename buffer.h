@@ -11,6 +11,8 @@
  *   any memory.
  * + Can grow as needed, using realloc (and moving the data from the stack
  *   array if needed).
+ * + Keeps track separately of a reading position and a writing position within
+ *   the buffer data.
  */
 
 #include "gmem.h"
@@ -123,7 +125,7 @@ typedef struct Buffer {
     } while (0)
 
 /*
- * Set buffer writing position to 0.
+ * Rewind and set buffer writing position to 0.
  */
 #define buffer_reset(buffer) \
     do { \
@@ -135,25 +137,23 @@ typedef struct Buffer {
  * Append a given char*, with indicated length, to the buffer.
  * If necessary, grow the buffer before appending.
  */
-#define buffer_append_str(buffer, src, length) \
+#define buffer_append_str(sb, ss, sl) \
     do { \
-        unsigned int l = (length); \
-        buffer_ensure_unused(buffer, l); \
-        memcpy((buffer)->data + (buffer)->wpos, src, l); \
-        (buffer)->wpos += l; \
+        unsigned int st = (sl); \
+        buffer_ensure_unused(sb, st); \
+        memcpy((sb)->data + (sb)->wpos, ss, st); \
+        (sb)->wpos += st; \
     } while (0)
 
 /*
  * Append a given Buffer to the buffer.
  * If necessary, grow the buffer before appending.
  */
-#define buffer_append_buf(buffer, src) \
+#define buffer_append_buf(bb, bs) \
     do { \
-        unsigned int l = (src)->wpos - (src)->rpos; \
-        buffer_ensure_unused(buffer, l); \
-        memcpy((buffer)->data + (buffer)->wpos, (src)->data + (src)->rpos, l); \
-        (buffer)->wpos += l; \
-        (src)->rpos += l; \
+        unsigned int bt = buffer_used(bs); \
+        buffer_append_str(bb, (bs)->data + (bs)->rpos, bt); \
+        (bs)->rpos += bt; \
     } while (0)
 
 /*
