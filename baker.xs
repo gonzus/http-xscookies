@@ -303,7 +303,7 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
 
             /* & chars => create arrayref */
             array = newAV();
-            end = pos;
+            end = (unsigned int) pos;
             while (1) {
                 SV* str = 0;
                 if (ini >= value.wpos) {
@@ -316,7 +316,7 @@ static HV* parse_cookie(pTHX_ SV* pstr, int allow_no_value)
                 ++key;
                 ini = ++end;
                 pos = search_char('&', &value, end);
-                end = pos < 0 ? value.wpos : pos;
+                end = pos < 0 ? value.wpos : (unsigned int) pos;
             }
             ref = newRV_noinc((SV*) array);
             hv_store(hv, name.data, name.wpos, ref, 0);
