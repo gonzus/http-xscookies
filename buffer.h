@@ -58,16 +58,18 @@ typedef struct Buffer {
  */
 
 /*
- * Initialize / finalize a buffer that could either use the
- * internal stack array or dynamically allocate memory.
+ * Initialize / finalize a buffer that could either use the internal stack
+ * array or dynamically allocate memory.  If size fits within the fixed array,
+ * just use that; otherwise compute a minimal size using a geometric slide and
+ * allocate that.
  */
 #define buffer_init(buffer, length) \
     do { \
-        unsigned int target = (length) > 0 ? ((length)+1) : BUFFER_SIZE_INIT; \
+        unsigned int needed_init = (length); \
         buffer_zero(buffer); \
-        if ((length) > sizeof((buffer)->fixed)) { \
-            target = BUFFER_SIZE_INIT; \
-            while (target < (length)) { \
+        if (needed_init > sizeof((buffer)->fixed)) { \
+            unsigned int target = BUFFER_SIZE_INIT; \
+            while (target < needed_init) { \
                 target *= BUFFER_SIZE_FACTOR; \
             } \
             (buffer)->size = target; \
@@ -76,9 +78,13 @@ typedef struct Buffer {
             (buffer)->size = sizeof((buffer)->fixed); \
             (buffer)->data = (buffer)->fixed; \
         } \
-        buffer_reset(buffer); \
     } while (0)
 
+/*
+ * If the data pointer points somewhere else than fixed, we know this is a
+ * dynamically allocated buffer, so we must release it.
+ * NOTE: do not call this for a wrapped buffer (see below).
+ */
 #define buffer_fini(buffer) \
     do { \
         if ((buffer)->data && \
@@ -103,7 +109,13 @@ typedef struct Buffer {
  * Bytes still to be read.
  */
 #define buffer_used(buffer) \
-    ( (buffer)->wpos - (buffer)->rpos )
+    ((buffer)->wpos - (buffer)->rpos)
+
+/*
+ * Space left in buffer to write.
+ */
+#define buffer_left(buffer) \
+    ((buffer)->size - (buffer)->wpos)
 
 /*
  * Zero out buffer.
@@ -111,9 +123,9 @@ typedef struct Buffer {
 #define buffer_zero(buffer) \
     do { \
         (buffer)->size = 0; \
+        (buffer)->data = 0; \
         (buffer)->rpos = 0; \
         (buffer)->wpos = 0; \
-        (buffer)->data = 0; \
     } while (0)
 
 /*
@@ -125,7 +137,7 @@ typedef struct Buffer {
     } while (0)
 
 /*
- * Rewind and set buffer writing position to 0.
+ * Rewind buffer and set its writing position to 0.
  */
 #define buffer_reset(buffer) \
     do { \
@@ -134,59 +146,63 @@ typedef struct Buffer {
     } while (0)
 
 /*
- * Append a given char*, with indicated length, to the buffer.
+ * Append a given char*, with indicated length, to the buffer; update its wpos.
  * If necessary, grow the buffer before appending.
  */
-#define buffer_append_str(sb, ss, sl) \
+#define buffer_append_str(tgt_buf_str, src_str, len_str) \
     do { \
-        unsigned int st = (sl); \
-        buffer_ensure_unused(sb, st); \
-        memcpy((sb)->data + (sb)->wpos, ss, st); \
-        (sb)->wpos += st; \
+        unsigned int needed_str = (len_str); \
+        buffer_ensure_unused(tgt_buf_str, needed_str); \
+        memcpy((tgt_buf_str)->data + (tgt_buf_str)->wpos, src_str, needed_str); \
+        (tgt_buf_str)->wpos += needed_str; \
     } while (0)
 
 /*
- * Append a given Buffer to the buffer.
+ * Append a given Buffer to the buffer; update its wpos.
+ * Also update the source buffer's rpos.
  * If necessary, grow the buffer before appending.
  */
-#define buffer_append_buf(bb, bs) \
+#define buffer_append_buf(tgt_buf_buf, src_buf) \
     do { \
-        unsigned int bt = buffer_used(bs); \
-        buffer_append_str(bb, (bs)->data + (bs)->rpos, bt); \
-        (bs)->rpos += bt; \
+        unsigned int needed_buf = buffer_used(src_buf); \
+        buffer_append_str(tgt_buf_buf, (src_buf)->data + (src_buf)->rpos, needed_buf); \
+        (src_buf)->rpos += needed_buf; \
     } while (0)
 
 /*
- * Make sure the unused space in the buffer is at least size.
+ * Make sure the unused space in the buffer is at least size bytes.
  */
 #define buffer_ensure_unused(buffer, length) \
     do { \
-        unsigned int needed = (length) + 1; \
-        unsigned int left = (buffer)->size - (buffer)->wpos; \
-        if (left < needed) { \
-            buffer_ensure_total((buffer), (buffer)->wpos + (length)); \
+        unsigned int need_used = (length); \
+        unsigned int left = buffer_left(buffer); \
+        if (left < need_used) { \
+            buffer_ensure_total((buffer), (buffer)->wpos + need_used); \
         } \
     } while (0)
 
 /*
- * Make sure the total size of the buffer is at least size.
+ * Make sure the total size of the buffer is at least size bytes.
+ * If necessary, move the buffer's data from the fixed array into dynamic
+ * memory; otherwise, just realloc a larger buffer.
  */
 #define buffer_ensure_total(buffer, length) \
     do { \
-        unsigned int needed = (length) + 1; \
-        if ((buffer)->size < needed) { \
-            unsigned int target = BUFFER_SIZE_INIT; \
-            while (target < needed) { \
-                target *= BUFFER_SIZE_FACTOR; \
-            } \
-            if ((buffer)->data == (buffer)->fixed) { \
-                GMEM_NEW((buffer)->data, char, target); \
-                memcpy((buffer)->data, (buffer)->fixed, (buffer)->size); \
-            } else { \
-                GMEM_REALLOC((buffer)->data, char, (buffer)->size, target); \
-            } \
-            (buffer)->size = target; \
+        unsigned int need_total = (length); \
+        unsigned int target = BUFFER_SIZE_INIT; \
+        if ((buffer)->size >= need_total) { \
+            break; \
         } \
+        while (target < need_total) { \
+            target *= BUFFER_SIZE_FACTOR; \
+        } \
+        if ((buffer)->data == (buffer)->fixed) { \
+            GMEM_NEW((buffer)->data, char, target); \
+            memcpy((buffer)->data, (buffer)->fixed, (buffer)->size); \
+        } else { \
+            GMEM_REALLOC((buffer)->data, char, (buffer)->size, target); \
+        } \
+        (buffer)->size = target; \
     } while (0)
 
 #endif

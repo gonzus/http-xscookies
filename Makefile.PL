@@ -56,6 +56,7 @@ sub cflags {
         missing-declarations
         declaration-after-statement
         parentheses
+        sign-compare
     /;
     # $self->{CCFLAGS} .= " -W$_" for @warning_flags_gonzo;
 
