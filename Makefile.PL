@@ -63,7 +63,7 @@ sub cflags {
     # solaris refuses to compile unless we are using C99
     if ($^O eq 'solaris') {
         $self->{CCFLAGS} .= ' -std=c99';
-    } else {
+    } elsif ($] < 5.035005) {
         $self->{CCFLAGS} .= ' -std=c89';
     }
 
