@@ -1,3 +1,6 @@
+
+            * Fix compiling on MacOS.
+
 0.000021    2018-03-11
             * Stop using defined-or, breals oldeer perls.
 

@@ -72,6 +72,10 @@ sub cflags {
         $self->{CCFLAGS} .= ' -D_XOPEN_SOURCE=700';
     }
 
+    if ($^O eq 'darwin') {
+        $self->{CCFLAGS} .= ' -D_DARWIN_C_SOURCE';
+    }
+
     foreach (@cflags) {
         $_ = "CCFLAGS = $self->{CCFLAGS}" if /^CCFLAGS/;
     }
